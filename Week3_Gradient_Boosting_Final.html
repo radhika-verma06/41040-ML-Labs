@@ -1,0 +1,723 @@
+<!DOCTYPE html>
+
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1" name="viewport"/>
+<title>41040 Lab 3 - Classification, Regression and Gradient Boosting</title>
+<style>
+:root{
+  --navy:#173f66;--blue:#2f7fbe;--green:#3d8b68;--ink:#1f2937;--muted:#5f6b78;
+  --bg:#eef3f7;--paper:#ffffff;--line:#d8e2eb;--soft:#f7fafc;--yellow:#fff7d6;
+  --lightblue:#edf6fd;--lightgreen:#eef8f3;--pink:#fff4f7;
+}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{margin:0;background:var(--bg);font-family:Arial,Helvetica,sans-serif;color:var(--ink);line-height:1.65;font-size:19px}
+header{background:var(--navy);color:#fff;padding:34px 20px}
+.wrap{max-width:1080px;margin:auto}
+h1{font-size:clamp(2rem,5vw,3rem);line-height:1.1;margin:8px 0 12px}
+header p{margin:0;max-width:920px;color:#eef6fc;font-size:1.08rem}
+nav{position:sticky;top:0;background:#fff;border-bottom:1px solid var(--line);z-index:10;overflow:auto}
+nav .wrap{display:flex;gap:8px;padding:10px 14px}
+nav a{text-decoration:none;color:var(--navy);font-weight:700;white-space:nowrap;padding:8px 10px;border-radius:8px;font-size:.92rem}
+nav a:hover{background:#edf5fb}
+main{padding:24px 14px 60px}
+section{max-width:1080px;margin:0 auto 24px;background:var(--paper);border:1px solid var(--line);border-radius:18px;padding:26px}
+h2{color:var(--navy);font-size:1.75rem;margin:0 0 16px}
+h3{color:#24577e;font-size:1.26rem;margin:22px 0 8px}
+p{margin:10px 0}
+.big{font-size:1.18rem}
+.simple,.remember,.warning,.note{padding:15px 17px;border-radius:10px;margin:14px 0}
+.simple{background:var(--lightblue);border-left:6px solid var(--blue)}
+.remember{background:var(--lightgreen);border-left:6px solid var(--green)}
+.warning{background:var(--yellow);border-left:6px solid #d8aa2f}
+.note{background:#f3f6fa;border-left:6px solid #8aa6bb}
+.example{background:var(--soft);border:1px solid var(--line);padding:18px;border-radius:14px;margin:14px 0}
+.grid2,.grid3{display:grid;gap:16px}
+.grid2{grid-template-columns:1fr 1fr}
+.grid3{grid-template-columns:repeat(3,1fr)}
+@media(max-width:850px){.grid3{grid-template-columns:1fr}}
+@media(max-width:760px){.grid2{grid-template-columns:1fr}body{font-size:17px}}
+.card{background:#fff;border:1px solid var(--line);border-radius:16px;padding:18px;box-shadow:0 1px 0 rgba(0,0,0,.02)}
+.heroCards .card{padding:20px 18px}
+.icon{font-size:1.7rem;display:block;margin-bottom:8px}
+.flow{display:flex;flex-wrap:wrap;align-items:center;gap:10px;margin:18px 0}
+.box{background:#f8fbfd;border:2px solid #cfe0ec;border-radius:12px;padding:11px 13px;font-weight:700;color:#234c6c}
+.arrow{font-size:1.45rem;color:#6b879b;font-weight:700}
+.badge{display:inline-block;background:#e8f1f8;color:#164c76;border-radius:999px;padding:4px 10px;font-size:.82rem;font-weight:700;margin:3px 3px 0 0}
+.small{font-size:.92rem;color:var(--muted)}
+table{width:100%;border-collapse:collapse;margin:14px 0;font-size:.98rem}
+th,td{border:1px solid var(--line);padding:11px;text-align:left;vertical-align:top}
+th{background:#edf4fa;color:var(--navy)}
+code{background:#eef2f6;padding:2px 6px;border-radius:5px;font-family:Consolas,monospace;font-size:.92em}
+pre{background:#13202b;color:#f2f7fa;border-radius:12px;padding:15px;overflow:auto;font-size:.9rem;line-height:1.5}
+.tiny{font-size:.88rem;color:var(--muted)}
+/* interactive */
+.sorterGrid{display:grid;grid-template-columns:repeat(2,1fr);gap:14px;margin-top:14px}
+@media(max-width:760px){.sorterGrid{grid-template-columns:1fr}}
+.sortCard{border:2px solid #d4e2ee;border-radius:14px;padding:16px;background:#fff;cursor:pointer;transition:.2s}
+.sortCard:hover{transform:translateY(-1px);border-color:#93b8d7}
+.sortCard.correctC{background:#edf7ff;border-color:#2f7fbe}
+.sortCard.correctR{background:#eef8f3;border-color:#3d8b68}
+.result{margin-top:8px;font-weight:700}
+.controls{display:flex;gap:10px;flex-wrap:wrap;margin-top:12px}
+button{border:none;background:var(--navy);color:#fff;padding:10px 14px;border-radius:10px;font-weight:700;cursor:pointer;font-size:.95rem}
+button.alt{background:#5f6b78}
+button.light{background:#2f7fbe}
+button.green{background:#3d8b68}
+button:hover{opacity:.95}
+.boostViz{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-top:14px}
+@media(max-width:900px){.boostViz{grid-template-columns:1fr 1fr}}
+@media(max-width:520px){.boostViz{grid-template-columns:1fr}}
+.stage{border:1px solid var(--line);border-radius:16px;padding:16px;background:#fff}
+.stage.active{border:2px solid var(--blue);background:#f7fbff}
+.tree{background:#edf6fd;border-radius:12px;padding:10px 12px;margin-top:10px;font-weight:700;color:#17486e}
+.fix{background:#eef8f3;border-radius:12px;padding:10px 12px;margin-top:10px;font-weight:700;color:#2b5e46}
+.total{background:#fff7d6;border-radius:12px;padding:10px 12px;margin-top:10px;font-weight:700;color:#6a5313}
+.accordionItem{border:1px solid var(--line);border-radius:14px;margin:12px 0;overflow:hidden;background:#fff}
+.accordionHeader{padding:14px 16px;font-weight:700;color:var(--navy);cursor:pointer;background:#f8fbfd;display:flex;justify-content:space-between;align-items:center}
+.accordionContent{display:none;padding:16px;border-top:1px solid var(--line);background:#fff}
+.accordionItem.open .accordionContent{display:block}
+.metricDemo{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-top:14px}
+@media(max-width:820px){.metricDemo{grid-template-columns:1fr}}
+.stat{font-size:1.6rem;font-weight:800;color:var(--navy)}
+.pairFlow{display:grid;grid-template-columns:1fr 80px 1fr;gap:14px;align-items:stretch}
+@media(max-width:760px){.pairFlow{grid-template-columns:1fr}}
+.middleCol{display:flex;align-items:center;justify-content:center;font-size:2rem;color:#6b879b;font-weight:700}
+.pillRow{display:flex;flex-wrap:wrap;gap:8px;margin-top:8px}
+.miniQuiz{background:#f9fbfd;border:1px solid var(--line);border-radius:14px;padding:16px;margin-top:12px}
+.quizAnswer{display:none;margin-top:10px;padding:12px;border-radius:10px;background:#eef8f3;border-left:5px solid var(--green)}
+.footer{max-width:1080px;margin:auto;color:var(--muted);font-size:.9rem;padding:0 6px 30px}
+
+.paramTable td:first-child{font-family:Consolas,monospace;font-weight:700;color:#173f66;white-space:nowrap}.codeStep{border-left:5px solid #2f7fbe;background:#f8fbfd;border-radius:12px;padding:16px;margin:14px 0}.codeStep h3{margin-top:0}.codeExplain{display:grid;grid-template-columns:180px 1fr;gap:10px;margin:8px 0}.codeExplain strong{color:#173f66}.compareCode{display:grid;grid-template-columns:1fr 1fr;gap:16px}.paramFocus{background:#fff7d6;border:1px solid #efd990;border-radius:12px;padding:14px;margin:10px 0}.mono{font-family:Consolas,monospace}@media(max-width:760px){.compareCode{grid-template-columns:1fr}.codeExplain{grid-template-columns:1fr}.paramTable td:first-child{white-space:normal}}</style>
+</head>
+<body>
+<header>
+<div class="wrap">
+<div>41040 Introduction to Artificial Intelligence | Lab 3</div>
+<h1>Classification, Regression and Gradient Boosting</h1>
+<p>Overview of the two supervised learning problems used in Lab 3, the common workflow, how Gradient Boosting works, how the code fits together, and how pair work is completed in class.</p>
+</div>
+</header>
+<nav>
+<div class="wrap">
+<a href="#overview">Overview</a>
+<a href="#supervised">Supervised learning</a>
+<a href="#classification">Classification</a>
+<a href="#regression">Regression</a>
+<a href="#workflow">Workflow</a>
+<a href="#boosting">Gradient Boosting</a>
+<a href="#parameters">Parameters</a><a href="#code">Code</a>
+<a href="#metrics">Metrics</a>
+<a href="#pairwork">Pair work</a>
+<a href="#otherfive">Other algorithms</a>
+</div>
+</nav>
+<main>
+<section id="overview">
+<h2>1. Overview</h2>
+<p class="big">In this lab, the algorithm demonstrated by the tutor is <strong>Gradient Boosting</strong>.</p>
+<p>It is shown in two settings:</p>
+<div class="grid2 heroCards">
+<div class="card">
+<span class="icon">🏷️</span>
+<h3>Classification</h3>
+<p>The model predicts a <strong>category</strong>.</p>
+<p>Example: “Which flower species is this?”</p>
+</div>
+<div class="card">
+<span class="icon">📈</span>
+<h3>Regression</h3>
+<p>The model predicts a <strong>number</strong>.</p>
+<p>Example: “What is the house price?”</p>
+</div>
+</div>
+<div class="remember"><strong>Main structure:</strong> same machine-learning workflow, different type of target, different evaluation.</div>
+</section>
+<section id="supervised">
+<h2>2. What is supervised learning?</h2>
+<p>Supervised learning means we train a model using examples where the correct answer is already known.</p>
+<div class="flow">
+<div class="box">Inputs / features (X)</div>
+<div class="arrow">→</div>
+<div class="box">Known answers / target (y)</div>
+<div class="arrow">→</div>
+<div class="box">Model learns patterns</div>
+<div class="arrow">→</div>
+<div class="box">Model predicts new answers</div>
+</div>
+<div class="example">
+<h3>Simple example</h3>
+<p>If a model sees many flowers with measurements and the correct species label, it can learn the pattern between measurements and species.</p>
+<div class="grid2">
+<div class="card">
+<div class="badge">X</div>
+<p><strong>Features / inputs</strong><br/>petal length, petal width, sepal length, sepal width</p>
+</div>
+<div class="card">
+<div class="badge">y</div>
+<p><strong>Target / answer</strong><br/>setosa, versicolor, virginica</p>
+</div>
+</div>
+</div>
+</section>
+<section id="classification">
+<h2>3. Classification</h2>
+<p>Classification asks: <strong>Which class does this belong to?</strong></p>
+<div class="simple"><strong>Output type:</strong> a label or category.</div>
+<div class="grid2">
+<div class="card"><h3>Iris example</h3><p>Use flower measurements to predict the species.</p></div>
+<div class="card"><h3>Other examples</h3><p>Email: spam or not spam. Loan: approve or reject. Fruit: apple or orange.</p></div>
+</div>
+<div class="example">
+<h3>Interactive example</h3>
+<p>Click each card and decide whether it is classification or regression.</p>
+<div class="sorterGrid" id="sorter">
+<div class="sortCard" data-answer="classification"><strong>1.</strong> Predict whether a message is spam or not spam.<div class="result"></div></div>
+<div class="sortCard" data-answer="regression"><strong>2.</strong> Predict the selling price of a car.<div class="result"></div></div>
+<div class="sortCard" data-answer="classification"><strong>3.</strong> Predict which Iris species a flower belongs to.<div class="result"></div></div>
+<div class="sortCard" data-answer="regression"><strong>4.</strong> Predict the number of dollars a house will cost.<div class="result"></div></div>
+</div>
+<div class="controls">
+<button class="light" onclick="markExamples('classification')">Mark Classification</button>
+<button class="green" onclick="markExamples('regression')">Mark Regression</button>
+<button class="alt" onclick="resetSorter()">Reset</button>
+</div>
+</div>
+</section>
+<section id="regression">
+<h2>4. Regression</h2>
+<p>Regression asks: <strong>What value should be predicted?</strong></p>
+<div class="simple"><strong>Output type:</strong> a continuous number.</div>
+<div class="grid2">
+<div class="card"><h3>House example</h3><p>Use house size and age to predict house price.</p></div>
+<div class="card"><h3>Other examples</h3><p>Predict temperature, salary, rainfall, travel time or demand.</p></div>
+</div>
+<div class="note">
+<strong>Quick comparison:</strong><br/>
+    Classification output = label such as <code>Setosa</code>.<br/>
+    Regression output = numeric value such as <code>542000</code>.
+  </div>
+</section>
+<section id="workflow">
+<h2>5. The common workflow</h2>
+<p>The same overall process appears in both notebooks.</p>
+<div class="flow">
+<div class="box">Load data</div><div class="arrow">→</div>
+<div class="box">Choose X and y</div><div class="arrow">→</div>
+<div class="box">Split into train and test</div><div class="arrow">→</div>
+<div class="box">Create model</div><div class="arrow">→</div>
+<div class="box">fit()</div><div class="arrow">→</div>
+<div class="box">predict()</div><div class="arrow">→</div>
+<div class="box">Evaluate</div>
+</div>
+<div class="grid3">
+<div class="card"><h3>Load data</h3><p>Read the dataset so Python can work with it.</p></div>
+<div class="card"><h3>Choose X and y</h3><p><code>X</code> contains the inputs. <code>y</code> contains the answer to predict.</p></div>
+<div class="card"><h3>Split data</h3><p>Training data is used to learn. Test data checks how the model performs on unseen examples.</p></div>
+<div class="card"><h3>Create model</h3><p>For this demo, the chosen model is Gradient Boosting.</p></div>
+<div class="card"><h3>fit()</h3><p>The model learns patterns from the training data.</p></div>
+<div class="card"><h3>predict() and evaluate</h3><p>The model makes predictions, then results are measured using suitable metrics.</p></div>
+</div>
+<div class="miniQuiz">
+<strong>Quick check</strong>
+<p>Why do we not test the model on the exact same data it trained on?</p>
+<button onclick="toggleAnswer('quiz1')">Show answer</button>
+<div class="quizAnswer" id="quiz1">Because that would not show whether the model can handle new, unseen data. A model can look very good on training data but still perform poorly on fresh data.</div>
+</div>
+</section>
+<section id="boosting">
+<h2>6. How Gradient Boosting works</h2>
+<p>Gradient Boosting builds many small trees in sequence. Each new tree tries to improve the mistakes made by the earlier trees.</p>
+<div class="simple"><strong>Main idea:</strong> not one big tree at once, but many small steps that keep correcting the model.</div>
+<div class="controls">
+<button onclick="showStage(1)">Round 1</button>
+<button onclick="showStage(2)">Round 2</button>
+<button onclick="showStage(3)">Round 3</button>
+<button onclick="showStage(4)">Final model</button>
+</div>
+<div class="boostViz" id="boostViz">
+<div class="stage active" data-stage="1">
+<h3>Round 1</h3>
+<p>The first small tree makes an initial prediction.</p>
+<div class="tree">Tree 1: first guess</div>
+</div>
+<div class="stage" data-stage="2">
+<h3>Round 2</h3>
+<p>The next tree focuses on the earlier mistakes.</p>
+<div class="tree">Tree 2</div>
+<div class="fix">Corrects some errors from Tree 1</div>
+</div>
+<div class="stage" data-stage="3">
+<h3>Round 3</h3>
+<p>Another tree is added to improve the result further.</p>
+<div class="tree">Tree 3</div>
+<div class="fix">Corrects more errors</div>
+</div>
+<div class="stage" data-stage="4">
+<h3>Final model</h3>
+<p>The final prediction comes from combining the contribution of all small trees.</p>
+<div class="total">Final prediction = Tree 1 + Tree 2 + Tree 3 + ...</div>
+</div>
+</div>
+<div class="remember">You can explain it like this: <strong>one tree starts, the next tree helps, the next tree improves again, and the final model is the combination.</strong></div>
+</section>
+<section id="parameters">
+<h2>7. Gradient Boosting parameters used in the notebooks</h2>
+<p>A parameter is a setting we give to the model before training. It controls how the model learns.</p>
+<div class="remember"><strong>You do not need to memorise every parameter.</strong> The main ones to understand are <code>n_estimators</code>, <code>learning_rate</code> and <code>max_depth</code>.</div>
+<div class="grid2">
+<div class="card">
+<h3>Classification notebook</h3>
+<pre>GradientBoostingClassifier(
+    loss='log_loss',
+    learning_rate=0.1,
+    n_estimators=100,
+    subsample=1.0,
+    max_depth=3,
+    min_samples_split=2,
+    min_samples_leaf=1,
+    max_features=None,
+    random_state=42,
+    ccp_alpha=0.0
+)</pre>
+</div>
+<div class="card">
+<h3>Regression notebook</h3>
+<pre>GradientBoostingRegressor(
+    n_estimators=100,
+    learning_rate=0.1,
+    max_depth=3,
+    random_state=42
+)</pre>
+</div>
+</div>
+<h3>The main parameters</h3>
+<table class="paramTable">
+<thead><tr><th>Parameter</th><th>Value in notebook</th><th>What it means</th><th>Simple way to explain it</th></tr></thead>
+<tbody>
+<tr><td>n_estimators</td><td>100</td><td>How many small boosting trees are built.</td><td>The model gets up to 100 small chances to improve its prediction.</td></tr>
+<tr><td>learning_rate</td><td>0.1</td><td>How strongly each new tree changes the current prediction.</td><td>Each tree contributes a small correction rather than making a huge change.</td></tr>
+<tr><td>max_depth</td><td>3</td><td>How deep each small decision tree is allowed to grow.</td><td>Each tree stays fairly simple. A depth of 3 means only a few levels of questions.</td></tr>
+<tr><td>random_state</td><td>42</td><td>Fixes the random choices so the same run can be reproduced.</td><td>If we run the notebook again, we can get the same random behaviour.</td></tr>
+</tbody>
+</table>
+<h3>Extra parameters in the classification notebook</h3>
+<table class="paramTable">
+<thead><tr><th>Parameter</th><th>Value</th><th>Meaning</th></tr></thead>
+<tbody>
+<tr><td>loss</td><td>'log_loss'</td><td>The error function used for classification. The model tries to reduce classification error measured through log loss.</td></tr>
+<tr><td>subsample</td><td>1.0</td><td>Uses 100% of the training data when building each boosting stage.</td></tr>
+<tr><td>min_samples_split</td><td>2</td><td>A node needs at least 2 samples before it can be considered for another split.</td></tr>
+<tr><td>min_samples_leaf</td><td>1</td><td>A final leaf is allowed to contain at least 1 sample.</td></tr>
+<tr><td>max_features</td><td>None</td><td>No feature limit is applied when the tree looks for a split. It can consider all features.</td></tr>
+<tr><td>ccp_alpha</td><td>0.0</td><td>No cost-complexity pruning is applied to the small trees.</td></tr>
+</tbody>
+</table>
+<div class="paramFocus">
+<strong>Useful relationship to point out:</strong> <code>learning_rate</code> and <code>n_estimators</code> work together. A smaller learning rate means each tree makes a smaller correction, so we often need more trees. A larger learning rate makes stronger corrections, but can make the model learn too aggressively.
+  </div>
+</section>
+
+
+<section id="code">
+<h2>8. Reading the code from start to finish</h2>
+<p>The two notebooks use the same overall pattern. The main difference is the target and the type of Gradient Boosting model.</p>
+<div class="codeStep">
+<h3>Step 1: Define X and y</h3>
+<div class="compareCode">
+<div>
+<strong>Classification</strong>
+<pre>iris['species'] = le.fit_transform(iris['species'])
+X = iris.drop('species', axis=1)
+y = iris['species']</pre>
+<p><code>species</code> is the answer we want to predict, so it becomes <code>y</code>. The other columns become <code>X</code>.</p>
+<p><code>LabelEncoder()</code> changes species names into numbers because the model works with numeric class labels.</p>
+</div>
+<div>
+<strong>Regression</strong>
+<pre>target_column = 'HousePrice'
+X = df.drop(target_column, axis=1)
+y = df[target_column]</pre>
+<p><code>HousePrice</code> is the number we want to predict, so it becomes <code>y</code>. The remaining columns are the input features.</p>
+</div>
+</div>
+</div>
+<div class="codeStep">
+<h3>Step 2: Split the data</h3>
+<div class="compareCode">
+<div>
+<strong>Classification</strong>
+<pre>X_train, X_test, y_train, y_test = train_test_split(
+    X,
+    y,
+    test_size=0.2,
+    stratify=y,
+    random_state=42
+)</pre>
+</div>
+<div>
+<strong>Regression</strong>
+<pre>X_train, X_test, y_train, y_test = train_test_split(
+    X,
+    y,
+    test_size=0.2,
+    random_state=42
+)</pre>
+</div>
+</div>
+<div class="codeExplain"><strong>test_size=0.2</strong><span>20% is kept for testing and about 80% is used for training.</span></div>
+<div class="codeExplain"><strong>stratify=y</strong><span>Used in classification so the class proportions stay similar in the training and test sets.</span></div>
+<div class="codeExplain"><strong>random_state=42</strong><span>Keeps the random split repeatable.</span></div>
+<div class="simple"><strong>Why no <code>stratify=y</code> in the basic regression split?</strong> Regression predicts continuous numbers, not fixed classes.</div>
+</div>
+<div class="codeStep">
+<h3>Step 3: Keep two future samples aside</h3>
+<pre>futureSample_X = X_test.iloc[-2:].copy()
+futureSample_y = y_test.iloc[-2:].copy()
+
+X_test = X_test.iloc[:-2].copy()
+y_test = y_test.iloc[:-2].copy()</pre>
+<p>The notebook takes the last two test samples and keeps them separately. These are later used as a small final check on completely held-out examples.</p>
+<div class="codeExplain"><strong>iloc[-2:]</strong><span>Select the last two rows.</span></div>
+<div class="codeExplain"><strong>iloc[:-2]</strong><span>Keep everything except the last two rows.</span></div>
+<div class="codeExplain"><strong>.copy()</strong><span>Create an independent copy of the selected data.</span></div>
+</div>
+<div class="codeStep">
+<h3>Step 4: Build the Gradient Boosting pipeline</h3>
+<div class="compareCode">
+<div>
+<strong>Classification</strong>
+<pre>clf = Pipeline(steps=[
+    ('imputer', SimpleImputer(strategy='median')),
+    ('model', GradientBoostingClassifier(
+        loss='log_loss',
+        learning_rate=0.1,
+        n_estimators=100,
+        subsample=1.0,
+        max_depth=3,
+        min_samples_split=2,
+        min_samples_leaf=1,
+        max_features=None,
+        random_state=42,
+        ccp_alpha=0.0
+    ))
+])</pre>
+</div>
+<div>
+<strong>Regression</strong>
+<pre>gbr = Pipeline(steps=[
+    ('imputer', SimpleImputer(strategy='median')),
+    ('model', GradientBoostingRegressor(
+        n_estimators=100,
+        learning_rate=0.1,
+        max_depth=3,
+        random_state=42
+    ))
+])</pre>
+</div>
+</div>
+<div class="codeExplain"><strong>Pipeline(...)</strong><span>Keeps preprocessing and the model together in one ordered workflow.</span></div>
+<div class="codeExplain"><strong>SimpleImputer</strong><span>If a feature value is missing, replace it with the median value of that feature.</span></div>
+<div class="codeExplain"><strong>GradientBoostingClassifier</strong><span>Used because the answer is a class label.</span></div>
+<div class="codeExplain"><strong>GradientBoostingRegressor</strong><span>Used because the answer is a continuous number.</span></div>
+</div>
+<div class="codeStep">
+<h3>Step 5: Train the model</h3>
+<div class="compareCode">
+<div><pre>clf.fit(X_train, y_train)</pre></div>
+<div><pre>gbr.fit(X_train, y_train)</pre></div>
+</div>
+<p><code>fit()</code> is the learning step. The model sees the training inputs and the correct training answers and builds its internal sequence of trees.</p>
+<div class="remember"><strong>Short explanation in class:</strong> “Here the model is learning. We give it the questions, <code>X_train</code>, and the known answers, <code>y_train</code>.”</div>
+</div>
+<div class="codeStep">
+<h3>Step 6: Predict the test data</h3>
+<div class="compareCode">
+<div>
+<strong>Classification</strong>
+<pre>y_preds = developed_model.predict(X_test)</pre>
+<p>The output is a predicted class for every test flower.</p>
+</div>
+<div>
+<strong>Regression</strong>
+<pre>y_pred = model.predict(X_test)</pre>
+<p>The output is a predicted house price for every test house.</p>
+</div>
+</div>
+<p>The model is no longer learning here. It is using what it already learned.</p>
+</div>
+<div class="codeStep">
+<h3>Step 7: Evaluate classification</h3>
+<pre>accuracy_test = accuracy_score(y_test, y_preds)
+precision_test = metrics.precision_score(
+    y_test, y_preds, average='weighted', zero_division=0
+)
+recall_test = metrics.recall_score(
+    y_test, y_preds, average='weighted', zero_division=0
+)
+f1_test = metrics.f1_score(
+    y_test, y_preds, average='weighted', zero_division=0
+)</pre>
+<div class="codeExplain"><strong>Accuracy</strong><span>Overall proportion of predictions that are correct.</span></div>
+<div class="codeExplain"><strong>Precision</strong><span>When the model predicts a class, how often that prediction is correct.</span></div>
+<div class="codeExplain"><strong>Recall</strong><span>Out of the real examples of a class, how many the model successfully finds.</span></div>
+<div class="codeExplain"><strong>F1-score</strong><span>A single score that balances precision and recall.</span></div>
+<div class="codeExplain"><strong>average='weighted'</strong><span>Calculate the metric for all classes, giving more weight to classes that have more examples.</span></div>
+<p>The classification notebook also displays a <strong>classification report</strong> and a <strong>confusion matrix</strong> so students can see which classes were confused with each other.</p>
+</div>
+<div class="codeStep">
+<h3>Step 8: Evaluate regression</h3>
+<pre>mean_absolute_error_test = metrics.mean_absolute_error(y_test, y_pred)
+rmse_test = np.sqrt(metrics.mean_squared_error(y_test, y_pred))
+mape_test = metrics.mean_absolute_percentage_error(y_test, y_pred)
+r2_test = metrics.r2_score(y_test, y_pred)</pre>
+<div class="codeExplain"><strong>MAE</strong><span>Average absolute size of the prediction error. Lower is better.</span></div>
+<div class="codeExplain"><strong>RMSE</strong><span>Another error measure that gives larger mistakes more influence. Lower is better.</span></div>
+<div class="codeExplain"><strong>MAPE</strong><span>Average error expressed relative to the true values. Lower is better.</span></div>
+<div class="codeExplain"><strong>R²</strong><span>Shows how much of the variation in the target is explained by the model. Higher is generally better.</span></div>
+</div>
+<div class="codeStep">
+<h3>Step 9: Predict the future samples</h3>
+<div class="compareCode">
+<div>
+<strong>Classification</strong>
+<pre>future_preds = developed_model.predict(futureSample_X)</pre>
+<p>The numeric predicted class is converted back to the flower species name for display.</p>
+</div>
+<div>
+<strong>Regression</strong>
+<pre>solution_validate = model.predict(futureSample_X)</pre>
+<p>The predicted house price is compared with the actual house price.</p>
+</div>
+</div>
+</div>
+<div class="codeStep">
+<h3>Step 10: Cross-validation</h3>
+<p>A single train/test split can be lucky or unlucky. Cross-validation repeats the evaluation using different portions of the data.</p>
+<div class="compareCode">
+<div>
+<strong>Classification</strong>
+<pre>cv = StratifiedKFold(
+    n_splits=5,
+    shuffle=True,
+    random_state=42
+)</pre>
+<p><strong>Stratified</strong> means each fold tries to keep a similar class distribution.</p>
+</div>
+<div>
+<strong>Regression</strong>
+<pre>kfold_cv = KFold(
+    n_splits=5,
+    shuffle=True,
+    random_state=42
+)</pre>
+<p>The regression notebook also creates a stratified version by first grouping the continuous target into bins.</p>
+</div>
+</div>
+<div class="codeExplain"><strong>n_splits=5</strong><span>Divide the data into five folds.</span></div>
+<div class="codeExplain"><strong>shuffle=True</strong><span>Shuffle the data before forming the folds.</span></div>
+<div class="codeExplain"><strong>n_jobs=-1</strong><span>When <code>cross_validate()</code> runs, use all available CPU cores.</span></div>
+</div>
+<div class="warning"><strong>Important:</strong> both supplied notebooks contain cells for several different models. The variable holding the current model is replaced when another model cell is run. Always check which model cell ran most recently before explaining the evaluation output.</div>
+</section>
+
+<section id="metrics">
+<h2>9. Evaluation</h2>
+<div class="metricDemo">
+<div class="card">
+<h3>Classification metrics</h3>
+<p><strong>Accuracy</strong> tells us how many predictions were correct.</p>
+<p class="stat">90 / 100 = 90%</p>
+<p>If the model gets 90 out of 100 examples right, the accuracy is 90%.</p>
+<p><strong>Confusion matrix</strong> shows where the model is getting classes right or mixing them up.</p>
+</div>
+<div class="card">
+<h3>Regression metrics</h3>
+<p><strong>MAE</strong> means mean absolute error.</p>
+<p class="stat">Average mistake size</p>
+<p>If the price predictions are off by 10k, 20k and 30k, then the MAE is 20k.</p>
+<p>For MAE, <strong>smaller is better</strong>.</p>
+</div>
+</div>
+<table>
+<thead>
+<tr><th>Problem type</th><th>Main question</th><th>Typical metric</th><th>Better result</th></tr>
+</thead>
+<tbody>
+<tr><td>Classification</td><td>Did the model choose the right class?</td><td>Accuracy</td><td>Higher</td></tr>
+<tr><td>Regression</td><td>How close is the predicted number?</td><td>MAE</td><td>Lower</td></tr>
+</tbody>
+</table>
+<div class="miniQuiz">
+<strong>Quick check</strong>
+<p>A classifier gets 47 out of 50 predictions correct. What is the accuracy?</p>
+<button onclick="toggleAnswer('quiz2')">Show answer</button>
+<div class="quizAnswer" id="quiz2">Accuracy = 47 ÷ 50 = 0.94 = 94%.</div>
+</div>
+<div class="miniQuiz">
+<strong>Quick check</strong>
+<p>A regressor has errors of 5, 7 and 9. What is the MAE?</p>
+<button onclick="toggleAnswer('quiz3')">Show answer</button>
+<div class="quizAnswer" id="quiz3">MAE = (5 + 7 + 9) ÷ 3 = 7.</div>
+</div>
+</section>
+<section>
+<h2>10. The other algorithms in the lab</h2>
+<div class="grid3">
+<div class="card"><h3>Decision Tree</h3><p>A tree of decision rules.</p></div>
+<div class="card"><h3>Random Forest</h3><p>Many trees combined together.</p></div>
+<div class="card"><h3>Linear / Logistic Regression</h3><p>Linear Regression is for predicting numbers. Logistic Regression is for class labels.</p></div>
+<div class="card"><h3>KNN</h3><p>Looks at nearby examples to make a prediction.</p></div>
+<div class="card"><h3>SVM</h3><p>Finds a boundary between classes or fits a regression margin.</p></div>
+<div class="card"><h3>Gradient Boosting</h3><p>Builds small trees one after another to improve performance.</p></div>
+</div>
+</section>
+<section id="pairwork">
+<h2>11. Pair work in class</h2>
+<p>After the two tutor demonstrations, pairs work through the remaining algorithms and prepare two clean notebooks.</p>
+<div class="pairFlow">
+<div class="card">
+<h3>Partner A</h3>
+<p>Chooses one <strong>classification</strong> algorithm and prepares the clean classification notebook.</p>
+<div class="pillRow">
+<span class="badge">target = category</span>
+<span class="badge">metric = accuracy</span>
+<span class="badge">example = Iris species</span>
+</div>
+</div>
+<div class="middleCol">↔</div>
+<div class="card">
+<h3>Partner B</h3>
+<p>Chooses one <strong>regression</strong> algorithm and prepares the clean regression notebook.</p>
+<div class="pillRow">
+<span class="badge">target = number</span>
+<span class="badge">metric = MAE</span>
+<span class="badge">example = house price</span>
+</div>
+</div>
+</div>
+<div class="flow">
+<div class="box">Watch both demos</div>
+<div class="arrow">→</div>
+<div class="box">Run other algorithms</div>
+<div class="arrow">→</div>
+<div class="box">Pick one notebook each</div>
+<div class="arrow">→</div>
+<div class="box">Explain results to each other</div>
+<div class="arrow">→</div>
+<div class="box">Tutor check</div>
+<div class="arrow">→</div>
+<div class="box">Submit</div>
+</div>
+<div class="remember"><strong>Expected output from a pair:</strong> one clean classification notebook and one clean regression notebook.</div>
+</section>
+<section id="otherfive">
+<h2>11. The other five algorithms</h2>
+<p>While working in pairs, students will run the other five algorithm families below. The aim is to understand the basic idea of each model and compare the results.</p>
+<div class="grid2">
+<div class="card">
+<h3>Decision Tree</h3>
+<p>A Decision Tree makes predictions by asking a sequence of simple questions.</p>
+<p><strong>Example:</strong> “Is petal length greater than 4 cm?” → yes/no → move to the next question → reach a prediction.</p>
+<p><strong>Idea:</strong> one tree made of decision rules.</p>
+</div>
+<div class="card">
+<h3>Random Forest</h3>
+<p>A Random Forest uses many Decision Trees instead of relying on only one.</p>
+<p>Each tree gives an answer, and the forest combines their answers.</p>
+<p><strong>Idea:</strong> many trees together usually give a more stable prediction than one tree alone.</p>
+</div>
+<div class="card">
+<h3>Logistic / Linear Regression</h3>
+<p><strong>Logistic Regression</strong> is used for classification. It estimates which class an example is most likely to belong to.</p>
+<p><strong>Linear Regression</strong> is used for regression. It finds a relationship between the inputs and a numeric target.</p>
+<p><strong>Idea:</strong> Logistic → category. Linear → number.</p>
+</div>
+<div class="card">
+<h3>k-Nearest Neighbours (KNN)</h3>
+<p>KNN looks at the most similar training examples nearby.</p>
+<p><strong>Classification:</strong> nearby examples vote for the class.</p>
+<p><strong>Regression:</strong> nearby values are combined to predict a number.</p>
+<p><strong>Idea:</strong> “What happened to examples that look like this one?”</p>
+</div>
+<div class="card">
+<h3>Support Vector Machine (SVM)</h3>
+<p>For classification, SVM tries to find a boundary that separates different classes as clearly as possible.</p>
+<p>For regression, the related model is usually called <strong>SVR</strong>.</p>
+<p><strong>Idea:</strong> find the best separating boundary, or a regression line/region that keeps errors controlled.</p>
+</div>
+<div class="card">
+<h3>What to compare while working</h3>
+<p>When you run each model, focus on the same workflow:</p>
+<p><strong>X and y → train/test split → create model → fit → predict → evaluate.</strong></p>
+<p>Then compare the metric values and ask: <strong>Which model performed better on this dataset?</strong></p>
+</div>
+</div>
+<div class="remember">
+<strong>Quick memory:</strong><br/>
+    Decision Tree = one tree<br/>
+    Random Forest = many trees<br/>
+    Logistic Regression = classify<br/>
+    Linear Regression = predict a number<br/>
+    KNN = look at nearby examples<br/>
+    SVM = find the best boundary
+  </div>
+</section>
+<section>
+<h2>12. Important notebook note</h2>
+<div class="warning">
+    The supplied notebooks contain multiple model cells. If later cells are run, the active model can change. So when explaining Gradient Boosting, make sure the Gradient Boosting model cell has been run before the evaluation you are discussing.
+  </div>
+<p>This matters because the evaluation output belongs to whichever model was run most recently.</p>
+</section>
+<section>
+<h2>13. Summary</h2>
+<ul>
+<li><strong>Classification</strong> predicts a category.</li>
+<li><strong>Regression</strong> predicts a number.</li>
+<li><strong>Gradient Boosting</strong> adds small trees step by step to improve predictions.</li>
+<li>The workflow is: load data → choose X and y → split → create model → fit → predict → evaluate.</li>
+<li>In pair work, one person prepares the classification notebook and the other prepares the regression notebook.</li>
+</ul>
+</section>
+</main>
+<div class="footer wrap">Lab 3 class guide for 41040 Introduction to Artificial Intelligence.</div>
+<script>
+function markExamples(choice){
+  document.querySelectorAll('.sortCard').forEach(card=>{
+    const ans = card.getAttribute('data-answer');
+    const result = card.querySelector('.result');
+    if(choice === ans){
+      result.textContent = 'Correct: ' + (ans === 'classification' ? 'Classification' : 'Regression');
+      card.classList.remove('correctC','correctR');
+      card.classList.add(ans === 'classification' ? 'correctC' : 'correctR');
+    } else {
+      result.textContent = 'Not this one. It is ' + (ans === 'classification' ? 'Classification' : 'Regression');
+      card.classList.remove('correctC','correctR');
+    }
+  });
+}
+function resetSorter(){
+  document.querySelectorAll('.sortCard').forEach(card=>{
+    card.classList.remove('correctC','correctR');
+    card.querySelector('.result').textContent='';
+  });
+}
+function showStage(n){
+  document.querySelectorAll('.stage').forEach(s=>s.classList.remove('active'));
+  const current = document.querySelector('.stage[data-stage="'+n+'"]');
+  if(current) current.classList.add('active');
+}
+function toggleAccordion(el){
+  const item = el.parentElement;
+  item.classList.toggle('open');
+}
+function toggleAnswer(id){
+  const el = document.getElementById(id);
+  el.style.display = (el.style.display === 'block') ? 'none' : 'block';
+}
+</script>
+</body>
+</html>

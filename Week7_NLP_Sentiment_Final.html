@@ -1,0 +1,767 @@
+<!DOCTYPE html>
+<html lang="en-AU">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Lab 7 — NLP & Sentiment Analysis</title>
+<style>
+  :root{
+    --bg:#f7f9fc;
+    --paper:#ffffff;
+    --ink:#172033;
+    --muted:#667085;
+    --line:#e4e9f2;
+    --blue:#0b5cab;
+    --blue2:#e9f2ff;
+    --navy:#0d2746;
+    --teal:#0a7f73;
+    --teal2:#e9f8f5;
+    --amber:#9a5b00;
+    --amber2:#fff5dd;
+    --red:#a13c3c;
+    --red2:#fff0f0;
+    --code:#0d1726;
+    --shadow:0 12px 34px rgba(20,41,74,.08);
+    --radius:18px;
+  }
+  *{box-sizing:border-box}
+  html{scroll-behavior:smooth}
+  body{
+    margin:0;
+    color:var(--ink);
+    background:var(--bg);
+    font-family:Inter, ui-sans-serif, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif;
+    line-height:1.62;
+  }
+  #progress{position:fixed;z-index:100;top:0;left:0;height:4px;width:0;background:var(--blue)}
+  .topbar{
+    position:sticky;top:0;z-index:80;
+    backdrop-filter:blur(14px);
+    background:rgba(247,249,252,.92);
+    border-bottom:1px solid rgba(228,233,242,.95);
+  }
+  .topbar-inner{max-width:1180px;margin:auto;padding:11px 24px;display:flex;align-items:center;gap:18px;overflow-x:auto}
+  .brand{font-weight:800;white-space:nowrap;color:var(--navy)}
+  nav{display:flex;gap:6px;white-space:nowrap}
+  nav a{color:#42526b;text-decoration:none;padding:7px 10px;border-radius:10px;font-size:.9rem}
+  nav a:hover{background:#eef3f9;color:var(--blue)}
+  main{max-width:1120px;margin:auto;padding:48px 24px 90px}
+  .hero{
+    border:1px solid var(--line);background:linear-gradient(135deg,#fff 0%,#f2f7ff 100%);
+    border-radius:26px;padding:42px;box-shadow:var(--shadow);overflow:hidden;position:relative;
+  }
+  .hero:after{content:"";position:absolute;width:280px;height:280px;border:46px solid rgba(11,92,171,.06);border-radius:50%;right:-90px;top:-110px}
+  .eyebrow{font-size:.77rem;text-transform:uppercase;letter-spacing:.13em;font-weight:800;color:var(--blue)}
+  h1{font-size:clamp(2.35rem,6vw,4.7rem);line-height:.98;margin:12px 0 18px;letter-spacing:-.045em;color:var(--navy);max-width:870px}
+  .lead{max-width:790px;font-size:1.12rem;color:#475467;margin:0}
+  .pills{display:flex;flex-wrap:wrap;gap:9px;margin-top:24px}
+  .pill{border:1px solid #d5e2f2;background:#fff;border-radius:999px;padding:7px 11px;font-size:.86rem;font-weight:700;color:#30425a}
+  section{scroll-margin-top:80px;margin-top:64px}
+  h2{font-size:2rem;line-height:1.15;letter-spacing:-.025em;color:var(--navy);margin:0 0 10px}
+  h3{font-size:1.25rem;color:#203753;margin:0 0 10px}
+  h4{margin:0 0 7px;color:#253b57}
+  p{margin:8px 0 14px}
+  .section-intro{color:var(--muted);max-width:850px;margin-bottom:24px}
+  .grid{display:grid;gap:16px}
+  .g2{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .g3{grid-template-columns:repeat(3,minmax(0,1fr))}
+  .g4{grid-template-columns:repeat(4,minmax(0,1fr))}
+  .card{background:var(--paper);border:1px solid var(--line);border-radius:var(--radius);padding:22px;box-shadow:0 6px 20px rgba(20,41,74,.035)}
+  .card.core{border-top:4px solid var(--blue)}
+  .card.brief{border-top:4px solid #b7c3d6}
+  .tag{display:inline-flex;align-items:center;gap:6px;border-radius:999px;padding:4px 9px;font-size:.75rem;font-weight:800;letter-spacing:.02em;margin-bottom:10px}
+  .tag.core{background:var(--blue2);color:var(--blue)}
+  .tag.brief{background:#f0f3f7;color:#596579}
+  .tag.note{background:var(--amber2);color:var(--amber)}
+  .flow{display:grid;grid-template-columns:repeat(7,1fr);gap:8px;align-items:stretch;margin-top:18px}
+  .flow .node{background:#fff;border:1px solid var(--line);border-radius:14px;padding:16px 11px;text-align:center;font-weight:750;font-size:.87rem;position:relative}
+  .flow .node:not(:last-child):after{content:"→";position:absolute;right:-11px;top:50%;transform:translateY(-50%);z-index:5;background:var(--bg);padding:0 2px;color:#8793a5;font-weight:800}
+  .concept{display:flex;align-items:flex-start;gap:14px}
+  .num{width:34px;height:34px;flex:0 0 34px;border-radius:10px;background:var(--blue2);color:var(--blue);display:grid;place-items:center;font-weight:900}
+  .demo{background:#fff;border:1px solid var(--line);border-radius:20px;padding:22px;margin-top:16px}
+  label{font-weight:750;display:block;margin-bottom:7px;color:#30425a}
+  textarea,input[type="text"],select{width:100%;border:1px solid #cfd7e5;border-radius:12px;padding:12px 13px;background:#fff;color:var(--ink);font:inherit;outline:none}
+  textarea:focus,input:focus,select:focus{border-color:#6ca8e0;box-shadow:0 0 0 4px #e7f2ff}
+  button{border:0;background:var(--navy);color:#fff;padding:10px 14px;border-radius:11px;font-weight:800;cursor:pointer;margin-top:10px}
+  button:hover{background:var(--blue)}
+  .output{margin-top:14px;border-radius:13px;background:#f5f8fc;border:1px solid var(--line);padding:14px;min-height:50px;word-break:break-word}
+  .token{display:inline-block;background:#eaf3ff;color:#0a4f91;border:1px solid #cfe3fb;border-radius:8px;padding:3px 7px;margin:3px;font-size:.9rem}
+  .ngram{display:inline-block;background:var(--teal2);color:#07685f;border:1px solid #c9e9e4;border-radius:8px;padding:4px 8px;margin:3px;font-size:.9rem}
+  pre{position:relative;background:var(--code);color:#e6edf7;border-radius:15px;padding:18px;overflow:auto;font-size:.86rem;line-height:1.55;border:1px solid #1f3046;margin:12px 0 16px}
+  code{font-family:"SFMono-Regular",Consolas,"Liberation Mono",monospace}
+  .inline{background:#eef2f7;padding:2px 6px;border-radius:6px;font-family:"SFMono-Regular",Consolas,monospace;font-size:.91em}
+  .callout{border-left:4px solid var(--blue);background:var(--blue2);padding:14px 16px;border-radius:0 13px 13px 0;margin:16px 0}
+  .callout.teal{border-left-color:var(--teal);background:var(--teal2)}
+  .callout.warn{border-left-color:#d28a17;background:var(--amber2)}
+  .callout.red{border-left-color:var(--red);background:var(--red2)}
+  .formula{font-family:Georgia,"Times New Roman",serif;font-size:1.28rem;text-align:center;background:#fff;border:1px solid var(--line);padding:16px;border-radius:14px;margin:10px 0}
+  .small{font-size:.9rem;color:var(--muted)}
+  .table-wrap{overflow:auto;border:1px solid var(--line);border-radius:15px;background:#fff}
+  table{border-collapse:collapse;width:100%;min-width:670px}
+  th,td{padding:13px 14px;border-bottom:1px solid var(--line);vertical-align:top;text-align:left}
+  th{background:#f4f7fb;color:#34435a;font-size:.82rem;text-transform:uppercase;letter-spacing:.04em}
+  tr:last-child td{border-bottom:0}
+  .svgbox{background:#fff;border:1px solid var(--line);border-radius:18px;padding:16px}
+  .matrix{display:grid;grid-template-columns:85px 1fr 1fr;max-width:500px;margin:18px auto;border:1px solid var(--line);border-radius:15px;overflow:hidden}
+  .matrix div{padding:16px;text-align:center;border-right:1px solid var(--line);border-bottom:1px solid var(--line)}
+  .matrix div:nth-child(3n){border-right:0}.matrix div:nth-last-child(-n+3){border-bottom:0}
+  .matrix .head{background:#f4f7fb;font-weight:800}.matrix .good{background:#edf9f4}.matrix .bad{background:#fff1f1}
+  .metrics{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}
+  .metric{background:#fff;border:1px solid var(--line);border-radius:14px;padding:16px}
+  .metric strong{display:block;font-size:1.2rem;color:var(--navy)}
+  .lstm-flow{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin:18px 0}
+  .layer{border:1px solid var(--line);background:#fff;border-radius:16px;padding:18px;text-align:center;position:relative}
+  .layer:not(:last-child):after{content:"→";position:absolute;right:-13px;top:50%;transform:translateY(-50%);color:#8b97a8;font-weight:900}
+  details{background:#fff;border:1px solid var(--line);border-radius:14px;padding:13px 16px;margin:10px 0}
+  summary{cursor:pointer;font-weight:800;color:#31435c}
+  .quiz{display:grid;gap:14px}
+  .q{background:#fff;border:1px solid var(--line);border-radius:16px;padding:18px}
+  .q p{font-weight:800;margin-top:0}
+  .choice{display:block;padding:8px 10px;border-radius:9px;margin:3px 0;cursor:pointer}
+  .choice:hover{background:#f4f7fb}
+  .quiz-result{margin-top:16px;padding:16px;border-radius:14px;background:#f3f7fb;border:1px solid var(--line);font-weight:800}
+  .timeline{display:grid;grid-template-columns:repeat(7,1fr);gap:8px;margin-top:16px}
+  .time{background:#fff;border:1px solid var(--line);border-radius:13px;padding:12px;font-size:.85rem}
+  .time b{display:block;color:var(--blue);font-size:.78rem;margin-bottom:4px}
+
+  .at1-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:14px;margin-top:18px}
+  .at1-card{background:#fff;border:1px solid var(--line);border-radius:18px;padding:19px;position:relative;overflow:hidden}
+  .at1-card:before{content:"";position:absolute;left:0;top:0;bottom:0;width:4px;background:var(--blue)}
+  .at1-card h3{font-size:1.05rem;margin-bottom:7px}
+  .at1-card p{font-size:.9rem;color:var(--muted);margin-bottom:0}
+  .at1-num{display:inline-grid;place-items:center;width:28px;height:28px;border-radius:9px;background:var(--blue2);color:var(--blue);font-weight:900;font-size:.82rem;margin-bottom:10px}
+  .at1-check{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;margin-top:16px}
+  .at1-check div{border:1px solid var(--line);background:#fff;border-radius:13px;padding:13px;font-size:.88rem}
+  .not-choice{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px}
+  .not-choice span{border:1px solid #d9e0ea;background:#f6f8fb;color:#647084;border-radius:999px;padding:6px 10px;font-size:.82rem;font-weight:750}
+  @media(max-width:900px){.at1-grid{grid-template-columns:repeat(2,1fr)}.at1-check{grid-template-columns:1fr}}
+  @media(max-width:620px){.at1-grid{grid-template-columns:1fr}}
+  .footer{margin-top:75px;color:#778397;font-size:.88rem;text-align:center}
+
+  /* Added visual teaching aids */
+  .visual-story{margin-top:22px;background:#fff;border:1px solid var(--line);border-radius:20px;padding:22px;overflow:hidden}
+  .story-row{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:10px;align-items:stretch}
+  .story-step{border:1px solid var(--line);border-radius:14px;padding:14px 12px;background:#fbfcfe;position:relative;min-width:0}
+  .story-step:not(:last-child):after{content:"→";position:absolute;right:-10px;top:50%;transform:translateY(-50%);font-weight:900;color:#8b97a8;background:var(--bg);padding:0 2px;z-index:2}
+  .story-step b{display:block;color:var(--navy);margin-bottom:5px;font-size:.88rem}
+  .story-step .mini{font-size:.8rem;color:var(--muted);line-height:1.35}
+  .sentence-strip{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin:14px 0}
+  .word-chip{padding:7px 10px;border-radius:10px;border:1px solid #d7dfeb;background:#fff;font-weight:750}
+  .word-chip.faded{opacity:.4;text-decoration:line-through}
+  .word-chip.keep{background:var(--blue2);border-color:#cfe1f7;color:#0a4f91}
+  .window-demo{position:relative;padding:18px;border:1px dashed #c8d2df;border-radius:16px;background:#fbfcfe;margin-top:14px}
+  .window-row{display:flex;gap:8px;flex-wrap:wrap}
+  .ng-window{display:inline-flex;gap:6px;padding:9px 11px;border-radius:12px;border:2px solid #9fd5cb;background:#eefaf7;font-weight:800;color:#12685e}
+  .map-legend{display:flex;gap:12px;flex-wrap:wrap;margin-top:8px;font-size:.84rem;color:var(--muted)}
+  .dot{width:10px;height:10px;border-radius:50%;display:inline-block;margin-right:5px;vertical-align:middle}
+  .tfidf-visual{display:grid;grid-template-columns:1.1fr .9fr;gap:18px;margin-top:18px}
+  .docs{display:grid;gap:10px}
+  .doc-card{border:1px solid var(--line);border-radius:14px;padding:14px;background:#fff}
+  .hl-common{background:#eef2f6;padding:2px 5px;border-radius:5px}
+  .hl-rare{background:var(--amber2);padding:2px 5px;border-radius:5px;color:#7c4b00;font-weight:800}
+  .barlist{display:grid;gap:10px}
+  .barrow{display:grid;grid-template-columns:90px 1fr 52px;gap:10px;align-items:center;font-size:.86rem}
+  .bartrack{height:12px;border-radius:999px;background:#edf1f6;overflow:hidden}
+  .barfill{height:100%;border-radius:999px;background:#7b8798}
+  .barfill.high{background:#c88921}
+  .model-visuals{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px;margin-top:18px}
+  .model-v{border:1px solid var(--line);border-radius:16px;background:#fff;padding:15px;min-height:200px}
+  .model-v h4{margin-bottom:10px}
+  .evidence{display:flex;justify-content:space-between;gap:8px;margin:10px 0}
+  .evidence span{flex:1;padding:7px 8px;border-radius:8px;text-align:center;font-size:.78rem;font-weight:800}
+  .pos-e{background:#edf8f3;color:#22684f}.neg-e{background:#fff1f1;color:#8e3838}
+  .score-line{height:8px;border-radius:999px;background:linear-gradient(90deg,#d98e8e 0 50%,#8ccab4 50% 100%);position:relative;margin:26px 4px 15px}
+  .score-line:after{content:"";position:absolute;width:4px;height:22px;background:#172033;left:68%;top:-7px;border-radius:3px}
+  .svm-box{height:100px;border:1px solid #d9e0ea;border-radius:12px;position:relative;background:#fbfcfe;overflow:hidden}
+  .svm-line{position:absolute;width:160%;height:2px;background:#31435c;left:-30%;top:48%;transform:rotate(-18deg)}
+  .svm-dot{position:absolute;width:10px;height:10px;border-radius:50%}.svm-dot.p{background:#4e9d7d}.svm-dot.n{background:#c06d6d}
+  .tree-mini{display:grid;gap:7px;text-align:center;font-size:.78rem}
+  .tree-q{border:1px solid #cfd8e5;border-radius:9px;padding:7px;background:#f8fafc;font-weight:750}
+  .memory-strip{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:8px;align-items:center;margin:18px 0}
+  .memory-word{border:1px solid var(--line);border-radius:12px;padding:12px 8px;text-align:center;background:#fff;font-weight:800;position:relative}
+  .memory-word:not(:last-child):after{content:"→";position:absolute;right:-10px;top:50%;transform:translateY(-50%);color:#8b97a8;background:var(--bg);padding:0 2px}
+  .memory-word.key{background:var(--amber2);border-color:#efd59f}
+  .memory-state{grid-column:1/-1;border-left:4px solid var(--teal);background:var(--teal2);padding:12px 14px;border-radius:0 12px 12px 0;font-size:.9rem}
+  .activity-strip{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-top:18px}
+  .activity-step{border:1px solid var(--line);border-radius:14px;padding:14px;background:#fff}
+  .activity-step b{display:block;color:var(--blue);font-size:.8rem;text-transform:uppercase;letter-spacing:.05em;margin-bottom:4px}
+  @media(max-width:900px){.story-row{grid-template-columns:repeat(3,1fr)}.story-step:after{display:none}.tfidf-visual{grid-template-columns:1fr}.model-visuals{grid-template-columns:repeat(2,1fr)}.memory-strip{grid-template-columns:repeat(3,1fr)}.memory-word:after{display:none}.activity-strip{grid-template-columns:repeat(2,1fr)}}
+  @media(max-width:620px){.story-row,.model-visuals,.memory-strip,.activity-strip{grid-template-columns:1fr}}
+  @media(max-width:900px){
+    .g3,.g4,.metrics{grid-template-columns:repeat(2,1fr)}
+    .flow,.timeline{grid-template-columns:1fr 1fr}.flow .node:after{display:none}
+    .lstm-flow{grid-template-columns:1fr 1fr}.layer:after{display:none}
+  }
+  @media(max-width:620px){
+    main{padding:30px 14px 70px}.hero{padding:28px 22px}.g2,.g3,.g4,.metrics,.flow,.timeline,.lstm-flow{grid-template-columns:1fr}
+    h2{font-size:1.65rem}.topbar-inner{padding:10px 14px}
+  }
+  @media print{
+    .topbar,#progress,button{display:none!important} body{background:white} main{max-width:none;padding:0 20px}.hero,.card,.demo,details{box-shadow:none;break-inside:avoid} section{margin-top:34px}
+  }
+</style>
+</head>
+<body>
+<div id="progress"></div>
+<header class="topbar">
+  <div class="topbar-inner">
+    <div class="brand">Lab 7 · NLP</div>
+    <nav>
+      <a href="#map">Map</a><a href="#tokenisation">Tokenisation</a><a href="#ngrams">N-grams</a>
+      <a href="#word2vec">Word2Vec</a><a href="#tfidf">TF-IDF</a><a href="#sentiment">Sentiment</a>
+      <a href="#models">Models</a><a href="#metrics">Metrics</a><a href="#lstm">LSTM</a><a href="#quiz">Quiz</a><a href="#at1">AT1 Demo</a>
+    </nav>
+  </div>
+</header>
+<main>
+  <div class="hero">
+    <div class="eyebrow">42172 / 41040 · Lab 7</div>
+    <h1>Natural Language Processing & Sentiment Analysis</h1>
+    <p class="lead">A complete walk-through of the supplied Lab 7 material: turning raw language into useful representations, then using those representations to classify sentiment.</p>
+    <div class="pills">
+      <span class="pill">Tokenisation</span><span class="pill">N-grams</span><span class="pill">Word2Vec</span>
+      <span class="pill">TF-IDF</span><span class="pill">Naive Bayes</span><span class="pill">Logistic Regression</span>
+      <span class="pill">Linear SVM</span><span class="pill">Decision Tree</span><span class="pill">LSTM</span>
+    </div>
+  </div>
+
+  <section id="map">
+    <h2>The big picture</h2>
+    <p class="section-intro">The lab has two connected ideas. First, text must be converted into a form a computer can work with. Second, a model uses that representation to make a prediction.</p>
+    <div class="flow">
+      <div class="node">Raw text</div><div class="node">Clean / tokenise</div><div class="node">Represent text</div>
+      <div class="node">Split data</div><div class="node">Train model</div><div class="node">Evaluate</div><div class="node">Predict sentiment</div>
+    </div>
+    <div class="grid g3" style="margin-top:18px">
+      <div class="card core"><span class="tag core">CORE</span><h3>NLP basics</h3><p>Tokenisation, stop-word filtering, n-grams, Word2Vec and TF-IDF. These explain how language becomes structured data.</p></div>
+      <div class="card core"><span class="tag core">CORE</span><h3>Sentiment workflow</h3><p>Cleaning, feature creation, train/test split, training, prediction and evaluation. This is the repeated pattern behind the four classical classifiers.</p></div>
+      <div class="card brief"><span class="tag brief">OVERVIEW</span><h3>LSTM sequence model</h3><p>How a sequence model takes word IDs, pads reviews to a fixed length, learns an embedding, processes sequence information and outputs a sentiment probability.</p></div>
+    </div>
+
+    <div class="visual-story">
+      <h3>One sentence through the whole pipeline</h3>
+      <p class="small">Use the same example all the way through so each new idea has a clear purpose.</p>
+      <div class="story-row">
+        <div class="story-step"><b>1 · Raw text</b><div class="mini">“The movie was not good.”</div></div>
+        <div class="story-step"><b>2 · Tokens</b><div class="mini">the · movie · was · not · good</div></div>
+        <div class="story-step"><b>3 · N-grams</b><div class="mini">“not good” keeps local word order</div></div>
+        <div class="story-step"><b>4 · Numbers</b><div class="mini">TF-IDF gives useful terms numeric weights</div></div>
+        <div class="story-step"><b>5 · Model</b><div class="mini">NB / LR / SVM / DT use those features</div></div>
+        <div class="story-step"><b>6 · Output</b><div class="mini"><strong>Negative</strong> sentiment</div></div>
+      </div>
+      <div class="callout teal" style="margin-bottom:0"><strong>Simple mental model:</strong> NLP first changes language into useful pieces or numbers. The classifier then learns how those pieces relate to a label.</div>
+    </div>
+    <div class="activity-strip">
+      <div class="activity-step"><b>Watch</b>See tokenisation, n-grams, Word2Vec and the sentiment workflow demonstrated.</div>
+      <div class="activity-step"><b>Run</b>Execute the supplied notebook sections with a partner.</div>
+      <div class="activity-step"><b>Compare</b>Compare Naive Bayes, Logistic Regression, SVM and Decision Tree outputs.</div>
+      <div class="activity-step"><b>Observe</b>Follow the overall LSTM setup, training and prediction flow.</div>
+    </div>
+
+    <h3 style="margin-top:28px">A compact 45-minute path</h3>
+    <div class="timeline">
+      <div class="time"><b>0–5 min</b>Big picture</div><div class="time"><b>5–12 min</b>Tokenisation</div><div class="time"><b>12–18 min</b>N-grams</div>
+      <div class="time"><b>18–25 min</b>Word2Vec</div><div class="time"><b>25–33 min</b>TF-IDF + pipeline</div><div class="time"><b>33–40 min</b>4 classifiers</div><div class="time"><b>40–45 min</b>LSTM + recap</div>
+    </div>
+  </section>
+
+  <section id="tokenisation">
+    <h2>1. Tokenisation</h2>
+    <p class="section-intro">Computers do not begin with an understanding of a sentence. Tokenisation breaks text into smaller units so later NLP steps can work with them.</p>
+    <div class="grid g2">
+      <div class="card core">
+        <span class="tag core">CORE</span>
+        <div class="concept"><div class="num">A</div><div><h3>Sentence tokenisation</h3><p>Splits a paragraph into sentence units. In the notebook this is done with <span class="inline">sent_tokenize()</span>.</p></div></div>
+        <pre><code>sent_tokenize_result = sent_tokenize(EXAMPLE_TEXT)</code></pre>
+        <p class="small">Punctuation such as a full stop is not always enough by itself. A tokenizer uses language rules, so abbreviations such as “Mr.” do not automatically end a sentence.</p>
+      </div>
+      <div class="card core">
+        <span class="tag core">CORE</span>
+        <div class="concept"><div class="num">B</div><div><h3>Word tokenisation</h3><p>Splits text into word-level pieces. In the supplied example, punctuation also appears as separate tokens.</p></div></div>
+        <pre><code>word_tokenize_result = word_tokenize(EXAMPLE_TEXT)</code></pre>
+        <p class="small">The notebook output includes pieces such as <span class="inline">Mr.</span>, <span class="inline">,</span>, <span class="inline">?</span> and splits “shouldn't” into <span class="inline">should</span> and <span class="inline">n't</span>.</p>
+      </div>
+    </div>
+
+    <div class="visual-story">
+      <h3>Visual: one sentence becomes tokens</h3>
+      <div class="sentence-strip">
+        <span class="word-chip keep">The</span><span class="word-chip keep">movie</span><span class="word-chip keep">was</span><span class="word-chip keep">not</span><span class="word-chip keep">good</span><span class="word-chip">.</span>
+      </div>
+      <p class="small">Think of tokenisation as putting boundaries around useful pieces. The model still does not understand meaning yet. It simply has consistent units it can process.</p>
+      <div class="sentence-strip">
+        <span class="word-chip faded">The</span><span class="word-chip keep">movie</span><span class="word-chip faded">was</span><span class="word-chip keep">not</span><span class="word-chip keep">good</span><span class="word-chip faded">.</span>
+      </div>
+      <p class="small"><strong>After optional filtering:</strong> common words and punctuation may be removed, but “not” is important for sentiment because it changes the meaning of “good”.</p>
+    </div>
+
+    <div class="callout"><strong>Why this matters:</strong> a later model needs repeatable units. Once text is tokenised, tokens can be counted, filtered, grouped into n-grams or mapped to vectors.</div>
+
+    <div class="demo">
+      <h3>Try the idea</h3>
+      <label for="tokInput">Text</label>
+      <textarea id="tokInput" rows="3">Hello Mr. Smith, how are you doing today? The weather is great, and Python is awesome.</textarea>
+      <div class="grid g2" style="margin-top:12px">
+        <div><button onclick="showSentenceTokens()">Sentence tokens</button><div class="output" id="sentOut"></div></div>
+        <div><button onclick="showWordTokens()">Word tokens</button><div class="output" id="wordOut"></div></div>
+      </div>
+      <p class="small">This browser demo is intentionally simple. The notebook uses NLTK tokenisers, which handle language rules more carefully.</p>
+    </div>
+
+    <h3 style="margin-top:25px">Stop words and punctuation</h3>
+    <div class="grid g2">
+      <div class="card"><h4>Stop words</h4><p>Very common words such as “the”, “and”, “is”, “you” and “are”. Depending on the task, removing them can reduce noise.</p></div>
+      <div class="card"><h4>Punctuation</h4><p>The notebook checks <span class="inline">string.punctuation</span> and removes punctuation from the word list before building the filtered output.</p></div>
+    </div>
+    <pre><code>for w in word_tokenize_result:
+    w_lower = w.lower()
+    if (w_lower not in stops) and (w_lower != "n't") \
+       and (w_lower not in all_punctuation):
+        wordsWithoutStopWords.append(w)</code></pre>
+    <div class="callout warn"><strong>Important:</strong> removing stop words is a choice, not a universal rule. In sentiment, words such as “not” can reverse meaning, so preprocessing should match the task.</div>
+  </section>
+
+  <section id="ngrams">
+    <h2>2. N-grams</h2>
+    <p class="section-intro">An n-gram is a consecutive sequence of N items. Here the items are words.</p>
+    <div class="grid g3">
+      <div class="card"><h3>Unigram</h3><p>N = 1</p><p><span class="token">very</span> <span class="token">good</span> <span class="token">movie</span></p></div>
+      <div class="card"><h3>Bigram</h3><p>N = 2</p><p><span class="ngram">very good</span> <span class="ngram">good movie</span></p></div>
+      <div class="card"><h3>Trigram</h3><p>N = 3</p><p><span class="ngram">very good movie</span></p></div>
+    </div>
+
+    <div class="window-demo">
+      <h3>Visual: a sliding window</h3>
+      <p class="small">For a bigram, imagine a window that always holds two neighbouring words and slides one step at a time.</p>
+      <div class="window-row">
+        <span class="ng-window">this movie</span>
+        <span class="ng-window">movie was</span>
+        <span class="ng-window">was not</span>
+        <span class="ng-window">not very</span>
+        <span class="ng-window">very good</span>
+      </div>
+      <div class="callout teal" style="margin-bottom:0"><strong>Why it helps:</strong> “good” alone sounds positive. “not good” captures a short phrase whose meaning is negative. N-grams preserve that local relationship.</div>
+    </div>
+
+    <div class="callout teal"><strong>Key idea:</strong> single words give vocabulary information; n-grams preserve a small amount of local order. “not good” is more informative than counting “not” and “good” independently.</div>
+    <pre><code># Notebook idea
+n_grams = list(nltk.ngrams(all_words, self.n))
+return Counter(n_grams)</code></pre>
+    <p>The supplied corpus example uses <span class="inline">num_words = 2</span>, so it generates bigrams and counts their frequency. Saved output includes frequent pairs such as <span class="inline">('of', 'the')</span> and <span class="inline">('in', 'the')</span>.</p>
+
+    <div class="demo">
+      <h3>Generate n-grams</h3>
+      <label for="ngInput">Text</label>
+      <input id="ngInput" type="text" value="this movie was not very good" />
+      <label for="ngN" style="margin-top:10px">N</label>
+      <select id="ngN"><option value="1">1 — unigram</option><option value="2" selected>2 — bigram</option><option value="3">3 — trigram</option></select>
+      <button onclick="makeNgrams()">Generate</button>
+      <div class="output" id="ngOut"></div>
+    </div>
+  </section>
+
+  <section id="word2vec">
+    <h2>3. Word2Vec and word embeddings</h2>
+    <p class="section-intro">Instead of representing a word only as a label or count, an embedding represents it as a dense vector of numbers. The individual dimensions are not meant to be read one-by-one; relationships in the vector space are the useful part.</p>
+    <div class="grid g2">
+      <div class="card core"><span class="tag core">CORE</span><h3>Vector representation</h3><p>The notebook loads a supplied model from <span class="inline">text_data/words.txt</span> and accesses vectors such as <span class="inline">words["city"]</span> and <span class="inline">words["book"]</span>.</p><p>A vector is simply a list of numeric coordinates that places a word somewhere in a high-dimensional space.</p></div>
+      <div class="card core"><span class="tag core">CORE</span><h3>Meaning through geometry</h3><p>Words used in similar contexts tend to end up closer together. The notebook finds nearby words for “book”, including “books”, “essay”, “memoir”, “novella” and “anthology”.</p></div>
+    </div>
+
+    <div class="visual-story">
+      <h3>Think of Word2Vec as a meaning map</h3>
+      <p class="small">The picture below is only a 2D sketch. Real Word2Vec vectors have many dimensions.</p>
+      <svg viewBox="0 0 760 250" width="100%" role="img" aria-label="Simple Word2Vec meaning map">
+        <rect x="18" y="18" width="724" height="214" rx="16" fill="#fbfcfe" stroke="#e4e9f2"/>
+        <circle cx="150" cy="90" r="10" fill="#0b5cab"/><text x="168" y="95" font-size="17" fill="#203753">book</text>
+        <circle cx="220" cy="110" r="10" fill="#0b5cab"/><text x="238" y="115" font-size="17" fill="#203753">novel</text>
+        <circle cx="185" cy="155" r="10" fill="#0b5cab"/><text x="203" y="160" font-size="17" fill="#203753">memoir</text>
+        <circle cx="565" cy="80" r="10" fill="#0a7f73"/><text x="583" y="85" font-size="17" fill="#203753">city</text>
+        <circle cx="620" cy="135" r="10" fill="#0a7f73"/><text x="638" y="140" font-size="17" fill="#203753">town</text>
+        <circle cx="530" cy="160" r="10" fill="#0a7f73"/><text x="548" y="165" font-size="17" fill="#203753">village</text>
+        <text x="72" y="210" font-size="14" fill="#667085">similar words cluster</text>
+        <text x="530" y="210" font-size="14" fill="#667085">another semantic cluster</text>
+      </svg>
+      <div class="map-legend"><span><span class="dot" style="background:#0b5cab"></span>writing / books</span><span><span class="dot" style="background:#0a7f73"></span>places</span></div>
+      <div class="callout" style="margin-bottom:0"><strong>What distance means:</strong> words appearing in similar contexts tend to have vectors that are closer together. The useful information is the relationship between vectors, not the meaning of one individual coordinate.</div>
+    </div>
+
+    <div class="svgbox" style="margin-top:18px">
+      <svg viewBox="0 0 840 330" width="100%" role="img" aria-label="Conceptual embedding space">
+        <defs><marker id="arrow" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto"><path d="M0,0 L0,6 L9,3 z" fill="#7b8798"/></marker></defs>
+        <line x1="80" y1="275" x2="790" y2="275" stroke="#d8dfeb"/><line x1="80" y1="275" x2="80" y2="35" stroke="#d8dfeb"/>
+        <g fill="#0b5cab"><circle cx="180" cy="110" r="8"/><circle cx="235" cy="130" r="8"/><circle cx="275" cy="90" r="8"/></g>
+        <g font-size="16" fill="#203753"><text x="154" y="92">book</text><text x="216" y="157">novel</text><text x="258" y="70">memoir</text></g>
+        <g fill="#0a7f73"><circle cx="575" cy="90" r="8"/><circle cx="660" cy="90" r="8"/><circle cx="575" cy="200" r="8"/><circle cx="660" cy="200" r="8"/></g>
+        <g font-size="16" fill="#203753"><text x="548" y="72">Paris</text><text x="635" y="72">France</text><text x="542" y="228">London</text><text x="630" y="228">England</text></g>
+        <line x1="585" y1="95" x2="647" y2="95" stroke="#7b8798" stroke-width="2" marker-end="url(#arrow)"/>
+        <line x1="585" y1="205" x2="647" y2="205" stroke="#7b8798" stroke-width="2" marker-end="url(#arrow)"/>
+        <text x="605" y="123" font-size="13" fill="#667085">country relation</text><text x="604" y="255" font-size="13" fill="#667085">country relation</text>
+      </svg>
+    </div>
+    <h3 style="margin-top:24px">The analogy in the notebook</h3>
+    <div class="formula">vector(Paris) − vector(France) + vector(England) ≈ vector(London)</div>
+    <pre><code>words_relationship = words["paris"] - words["france"]
+result = words_relationship + words["england"]
+vectors.closest_word(result)   # 'london'</code></pre>
+    <div class="callout"><strong>Interpretation:</strong> the operation is not “doing geography” directly. It is using a pattern encoded in the learned vector space. A similar relation from France→Paris is transferred to England→?.</div>
+  </section>
+
+  <section id="tfidf">
+    <h2>4. TF-IDF</h2>
+    <p class="section-intro">TF-IDF gives a larger weight to terms that are important in a document but not common across the whole collection.</p>
+    <div class="grid g3">
+      <div class="card core"><h3>TF — Term Frequency</h3><p>How often term <em>t</em> appears in document <em>d</em>.</p><div class="formula">TF(t,d) = count of t in d</div></div>
+      <div class="card core"><h3>DF / IDF</h3><p>DF is how many documents contain the term. IDF gives more weight to terms found in fewer documents.</p><div class="formula">IDF(t) = log(N / DF(t))</div></div>
+      <div class="card core"><h3>TF-IDF</h3><p>Combine local frequency with corpus-level rarity.</p><div class="formula">TF-IDF = TF × IDF</div></div>
+    </div>
+    <div class="callout teal"><strong>Intuition:</strong> a word that appears often in one document can be useful, but if it appears in almost every document it is less distinctive. TF-IDF balances those two facts.</div>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Text</th><th>What TF sees</th><th>What IDF adds</th><th>Result</th></tr></thead>
+        <tbody>
+          <tr><td>“good good movie”</td><td>“good” appears twice</td><td>If “good” occurs in most documents, its rarity is low</td><td>Its final weight is moderated</td></tr>
+          <tr><td>“cinematography was stunning”</td><td>Each important term may appear once</td><td>If “cinematography” is rare in the corpus, IDF is higher</td><td>It can still receive a useful weight</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="tfidf-visual">
+      <div class="docs">
+        <div class="doc-card"><strong>Document 1</strong><p>The <span class="hl-common">movie</span> has excellent <span class="hl-rare">cinematography</span>.</p></div>
+        <div class="doc-card"><strong>Document 2</strong><p>The <span class="hl-common">movie</span> has a simple story.</p></div>
+        <div class="doc-card"><strong>Document 3</strong><p>The <span class="hl-common">movie</span> was enjoyable.</p></div>
+      </div>
+      <div class="card" style="box-shadow:none">
+        <h3>Visual intuition</h3>
+        <div class="barlist">
+          <div class="barrow"><span>movie</span><div class="bartrack"><div class="barfill" style="width:24%"></div></div><strong>low</strong></div>
+          <div class="barrow"><span>the</span><div class="bartrack"><div class="barfill" style="width:14%"></div></div><strong>low</strong></div>
+          <div class="barrow"><span>cinematography</span><div class="bartrack"><div class="barfill high" style="width:90%"></div></div><strong>high</strong></div>
+        </div>
+        <p class="small" style="margin-top:14px">“movie” appears across many documents, so it is less distinctive. “cinematography” appears in fewer documents, so its IDF component is larger.</p>
+      </div>
+    </div>
+    <div class="callout teal"><strong>Easy rule:</strong> TF asks “Is this word frequent in this document?” IDF asks “Is this word rare across the whole collection?” TF-IDF is high when both conditions make the word informative.</div>
+
+    <h3 style="margin-top:24px">What the NLP notebook does</h3>
+    <pre><code>vectorizer = TfidfVectorizer()
+tfidf_matrix = vectorizer.fit_transform(all_documents)
+
+similarity_scores = cosine_similarity(
+    tfidf_matrix[-1],      # query
+    tfidf_matrix[:-1]      # corpus documents
+)</code></pre>
+    <p>The notebook converts a small corpus plus a query into a TF-IDF matrix and then compares the query with the corpus using cosine similarity.</p>
+    <div class="callout warn"><strong>Note on exact numbers:</strong> the slide gives the core hand-calculation idea. <span class="inline">TfidfVectorizer</span> also applies implementation defaults such as normalisation, so the numerical vectors need not look like a simple raw TF × IDF hand calculation.</div>
+  </section>
+
+  <section id="sentiment">
+    <h2>5. Sentiment analysis: the common workflow</h2>
+    <p class="section-intro">Sentiment analysis is a classification problem here: decide whether a text example is positive or negative.</p>
+    <div class="flow">
+      <div class="node">Positive + negative text</div><div class="node">Clean text</div><div class="node">Create features</div>
+      <div class="node">80/20 split</div><div class="node">Fit classifier</div><div class="node">Measure results</div><div class="node">Classify new text</div>
+    </div>
+
+    <div class="grid g2" style="margin-top:22px">
+      <div class="card core"><span class="tag core">CORE</span><h3>1. Load labelled examples</h3><p>The supplied notebook loads <span class="inline">positives.txt</span> and <span class="inline">negatives.txt</span>. The saved run contains 11 positive and 10 negative examples.</p><pre><code>data = pd.DataFrame({
+  "text": pos_lines + neg_lines,
+  "label": ["pos"]*len(pos_lines) + ["neg"]*len(neg_lines)
+})</code></pre></div>
+      <div class="card core"><span class="tag core">CORE</span><h3>2. Clean the text</h3><p>The function lowercases, replaces punctuation with spaces and collapses repeated whitespace.</p><pre><code>def clean_text(s):
+    s = s.lower()
+    s = s.translate(PUNCT_TABLE)
+    s = re.sub(r"\s+", " ", s).strip()
+    return s</code></pre></div>
+      <div class="card core"><span class="tag core">CORE</span><h3>3. Turn text into features</h3><p>Naive Bayes uses token-presence dictionaries. Logistic regression, linear SVM and decision tree use TF-IDF with unigrams and bigrams.</p></div>
+      <div class="card core"><span class="tag core">CORE</span><h3>4. Split before training</h3><p>The notebook uses a stratified 80/20 split with <span class="inline">random_state=42</span>. Stratification tries to preserve the class balance in both sets.</p></div>
+    </div>
+    <div class="callout"><strong>Train vs test:</strong> the model learns from the training set. The test set stays outside training so it can provide an independent check on how the trained model behaves on unseen examples.</div>
+  </section>
+
+  <section id="models">
+    <h2>6. Four classical classifiers</h2>
+    <p class="section-intro">The implementation differs, but the surrounding pipeline is almost the same. The main comparison is how each model makes its decision from the text features.</p>
+    <div class="grid g2">
+      <div class="card brief"><span class="tag brief">QUICK BRIEF</span><h3>Naive Bayes</h3><p><strong>Idea:</strong> estimates which class is more probable from the words present in the text.</p><p>It combines evidence from features using Bayes' rule and makes a simplifying “naive” conditional-independence assumption.</p><pre><code>feats = {t: True for t in tokens if t}
+classifier = NaiveBayesClassifier.train(train_docs)</code></pre><p class="small">The saved notebook run uses this option and reports accuracy 0.6000 on a five-example test set.</p></div>
+
+      <div class="card brief"><span class="tag brief">QUICK BRIEF</span><h3>Logistic Regression</h3><p><strong>Idea:</strong> learns a weighted combination of TF-IDF features and converts the score into a probability for the positive class.</p><pre><code>Pipeline([
+  ("tfidf", TfidfVectorizer(ngram_range=(1,2))),
+  ("lr", LogisticRegression(max_iter=1000,
+                             solver="liblinear"))
+])</code></pre><p class="small">Positive-weighted features push the decision one way; negative-weighted features push it the other.</p></div>
+
+      <div class="card brief"><span class="tag brief">QUICK BRIEF</span><h3>Linear SVM</h3><p><strong>Idea:</strong> finds a separating boundary between the two classes with a large margin.</p><pre><code>Pipeline([
+  ("tfidf", TfidfVectorizer(ngram_range=(1,2))),
+  ("svm", LinearSVC(random_state=42))
+])</code></pre><p class="small">The notebook reports the magnitude of the decision score as a margin-style confidence proxy.</p></div>
+
+      <div class="card brief"><span class="tag brief">QUICK BRIEF</span><h3>Decision Tree</h3><p><strong>Idea:</strong> learns a sequence of feature-based splits until it reaches a class decision.</p><pre><code>DecisionTreeClassifier(
+  criterion="gini",
+  max_depth=50,
+  min_samples_leaf=2,
+  random_state=42
+)</code></pre><p class="small">Trees are easy to interpret conceptually, but on sparse high-dimensional text features they can behave very differently from linear models.</p></div>
+    </div>
+
+
+    <div class="visual-story">
+      <h3>Four models, four different ways of making the final decision</h3>
+      <div class="model-visuals">
+        <div class="model-v">
+          <h4>Naive Bayes · evidence</h4>
+          <div class="evidence"><span class="pos-e">great +</span><span class="neg-e">boring −</span></div>
+          <div class="evidence"><span class="neg-e">bad −</span><span class="pos-e">amazing +</span></div>
+          <p class="small">Combines how strongly observed words support each class, then chooses the more probable class.</p>
+        </div>
+        <div class="model-v">
+          <h4>Logistic Regression · weighted score</h4>
+          <div class="score-line" aria-label="negative to positive score line"></div>
+          <p class="small">Every feature contributes a learned weight. The total score is converted into a probability.</p>
+        </div>
+        <div class="model-v">
+          <h4>Linear SVM · boundary</h4>
+          <div class="svm-box">
+            <div class="svm-line"></div>
+            <span class="svm-dot p" style="left:18%;top:22%"></span><span class="svm-dot p" style="left:34%;top:26%"></span><span class="svm-dot p" style="left:22%;top:52%"></span>
+            <span class="svm-dot n" style="left:68%;top:64%"></span><span class="svm-dot n" style="left:78%;top:40%"></span><span class="svm-dot n" style="left:62%;top:78%"></span>
+          </div>
+          <p class="small">Finds a separating line or hyperplane with as much margin as possible between classes.</p>
+        </div>
+        <div class="model-v">
+          <h4>Decision Tree · questions</h4>
+          <div class="tree-mini"><div class="tree-q">contains “excellent”?</div><div>↓ no</div><div class="tree-q">contains “bad”?</div><div>↓ yes</div><strong>Negative</strong></div>
+          <p class="small">Makes a chain of feature-based splits until it reaches a class decision.</p>
+        </div>
+      </div>
+      <div class="callout" style="margin-bottom:0"><strong>Same input, different decision rule:</strong> the models can see similar text features, but each learns a different way to turn those features into a class.</div>
+    </div>
+
+    <h3 style="margin-top:28px">Same pipeline, different decision rule</h3>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Technique</th><th>Input representation in notebook</th><th>Decision idea</th><th>Output used</th></tr></thead>
+        <tbody>
+          <tr><td>Naive Bayes</td><td>Token-presence dictionary</td><td>Class probability from feature evidence</td><td>pos / neg</td></tr>
+          <tr><td>Logistic Regression</td><td>TF-IDF uni + bigrams</td><td>Weighted linear score → probability</td><td>pos / neg + probability</td></tr>
+          <tr><td>Linear SVM</td><td>TF-IDF uni + bigrams</td><td>Large-margin separating boundary</td><td>pos / neg + decision margin</td></tr>
+          <tr><td>Decision Tree</td><td>TF-IDF uni + bigrams</td><td>Sequence of feature splits</td><td>pos / neg + class probability</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <details>
+      <summary>What do the TF-IDF parameters mean?</summary>
+      <p><span class="inline">ngram_range=(1,2)</span>: include single words and two-word sequences.</p>
+      <p><span class="inline">min_df=1</span>: keep a feature even if it appears in only one training document.</p>
+      <p><span class="inline">strip_accents="unicode"</span>: normalise accented characters using Unicode processing.</p>
+    </details>
+    <details>
+      <summary>Why use a Pipeline?</summary>
+      <p>The pipeline keeps feature extraction and the classifier together. During <span class="inline">fit()</span>, TF-IDF is learned from the training text and the resulting vectors are passed to the classifier. During <span class="inline">predict()</span>, new text goes through the same transformation before classification.</p>
+    </details>
+  </section>
+
+  <section id="metrics">
+    <h2>7. Reading the results</h2>
+    <p class="section-intro">The notebook reports accuracy, a classification report and a confusion matrix. Each answers a different question.</p>
+    <div class="metrics">
+      <div class="metric"><strong>Accuracy</strong>How many predictions were correct overall?</div>
+      <div class="metric"><strong>Precision</strong>When the model predicted a class, how often was it right?</div>
+      <div class="metric"><strong>Recall</strong>Of the real examples in a class, how many did the model find?</div>
+      <div class="metric"><strong>F1</strong>Balance between precision and recall.</div>
+    </div>
+    <h3 style="margin-top:28px">Confusion matrix from the saved Naive Bayes run</h3>
+    <div class="matrix">
+      <div class="head"></div><div class="head">Predicted neg</div><div class="head">Predicted pos</div>
+      <div class="head">True neg</div><div class="good"><strong>1</strong><br><span class="small">correct negative</span></div><div class="bad"><strong>1</strong><br><span class="small">negative predicted positive</span></div>
+      <div class="head">True pos</div><div class="bad"><strong>1</strong><br><span class="small">positive predicted negative</span></div><div class="good"><strong>2</strong><br><span class="small">correct positive</span></div>
+    </div>
+    <div class="formula">Accuracy = (1 + 2) / 5 = 0.60</div>
+    <div class="callout warn"><strong>Read the number in context:</strong> the saved split has only five test examples. One changed prediction moves accuracy by 20 percentage points, so the example is useful for understanding the workflow rather than making a strong performance claim.</div>
+  </section>
+
+  <section id="lstm">
+    <h2>8. LSTM sentiment analysis</h2>
+    <p class="section-intro">The specification treats this as an overall workflow: observe how the model is configured, trained and applied, rather than reproducing every internal detail.</p>
+
+    <div class="visual-story">
+      <h3>Visual: LSTM reads a sequence while carrying context forward</h3>
+      <div class="memory-strip">
+        <div class="memory-word">the</div><div class="memory-word">movie</div><div class="memory-word">was</div><div class="memory-word key">not</div><div class="memory-word key">very</div><div class="memory-word key">good</div>
+        <div class="memory-state"><strong>Carried context:</strong> by the time the model reaches “good”, it can still use information from earlier words such as “not”. That is why sequence models can capture relationships that depend on word order.</div>
+      </div>
+      <div class="callout teal" style="margin-bottom:0"><strong>For this lab:</strong> the important idea is the flow: word IDs → embedding vectors → LSTM sequence processing → sigmoid sentiment probability.</div>
+    </div>
+
+    <div class="lstm-flow">
+      <div class="layer"><strong>Word IDs</strong><br><span class="small">IMDB reviews are integer sequences</span></div>
+      <div class="layer"><strong>Embedding(20000, 32)</strong><br><span class="small">IDs → dense vectors</span></div>
+      <div class="layer"><strong>LSTM(32)</strong><br><span class="small">process sequence information</span></div>
+      <div class="layer"><strong>Dense(1, sigmoid)</strong><br><span class="small">positive probability</span></div>
+    </div>
+    <div class="grid g2">
+      <div class="card"><h3>1. Data</h3><p>IMDB dataset: 25,000 training reviews and 25,000 test reviews. The notebook keeps the top <strong>20,000</strong> word IDs.</p></div>
+      <div class="card"><h3>2. Padding</h3><p>Reviews have different lengths, so <span class="inline">pad_sequences(..., maxlen=500)</span> makes every sequence length 500 by truncating or padding.</p></div>
+      <div class="card"><h3>3. Training</h3><p>The model uses AdamW, binary cross-entropy, 9 epochs and a 20% validation split. The <span class="inline">fit()</span> call explicitly uses batch size 128.</p></div>
+      <div class="card"><h3>4. Evaluation</h3><p>The saved notebook output reports test accuracy of approximately <strong>0.8536</strong>.</p></div>
+    </div>
+    <pre><code>model = Sequential()
+model.add(Embedding(max_features, 32))
+model.add(LSTM(32))
+model.add(Dense(1, activation='sigmoid'))
+
+model.compile(
+    optimizer='adamW',
+    loss='binary_crossentropy',
+    metrics=['acc']
+)
+
+history = model.fit(
+    input_train, y_train,
+    epochs=9,
+    batch_size=128,
+    validation_split=0.2
+)</code></pre>
+    <div class="callout"><strong>Why sigmoid?</strong> The final output is one value between 0 and 1. The notebook uses a threshold of 0.5: above 0.5 → positive, otherwise negative.</div>
+    <div class="callout warn"><strong>What the saved training history suggests:</strong> training accuracy keeps rising to about 0.986, while validation accuracy peaks earlier and validation loss later increases. That divergence is a classic sign that continued training is fitting the training data more strongly than the validation data.</div>
+
+    <details>
+      <summary>Two useful notebook code checks</summary>
+      <p><strong>Batch size:</strong> an earlier variable is declared as <span class="inline">batch_size = 32</span>, but the later <span class="inline">model.fit()</span> call explicitly passes <span class="inline">batch_size=128</span>. The explicit value is the one actually used in training.</p>
+      <p><strong>Actual label in the final prediction loop:</strong> the loop predicts from <span class="inline">input_test[i]</span> but looks up the displayed actual label from <span class="inline">y_train[i]</span>. If the intention is to compare against the matching test label, the corresponding array would be <span class="inline">y_test</span>.</p>
+    </details>
+  </section>
+
+  <section id="recap">
+    <h2>9. One-screen recap</h2>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Topic</th><th>Question it answers</th><th>Notebook clue</th></tr></thead>
+        <tbody>
+          <tr><td>Tokenisation</td><td>What are the smaller units in this text?</td><td><span class="inline">sent_tokenize</span>, <span class="inline">word_tokenize</span></td></tr>
+          <tr><td>N-grams</td><td>Which short sequences occur together?</td><td><span class="inline">nltk.ngrams</span> + <span class="inline">Counter</span></td></tr>
+          <tr><td>Word2Vec</td><td>How can words be placed in a semantic vector space?</td><td>distance, closest words, vector analogy</td></tr>
+          <tr><td>TF-IDF</td><td>Which terms are important here but not common everywhere?</td><td><span class="inline">TfidfVectorizer</span></td></tr>
+          <tr><td>Naive Bayes</td><td>Which class is more probable from the observed features?</td><td>token-presence feature dictionary</td></tr>
+          <tr><td>Logistic Regression</td><td>Which side does a weighted feature score favour?</td><td>TF-IDF + linear probability model</td></tr>
+          <tr><td>Linear SVM</td><td>Where is a large-margin boundary between classes?</td><td>TF-IDF + <span class="inline">LinearSVC</span></td></tr>
+          <tr><td>Decision Tree</td><td>Which sequence of feature splits reaches a class?</td><td>TF-IDF + tree splits</td></tr>
+          <tr><td>LSTM</td><td>How can a model process word order across a sequence?</td><td>Embedding → LSTM → sigmoid</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <section id="quiz">
+    <h2>10. Quick check</h2>
+    <p class="section-intro">Choose one answer for each question, then check the result.</p>
+    <div class="quiz" id="quizBox">
+      <div class="q" data-answer="b"><p>1. What is the main purpose of tokenisation?</p><label class="choice"><input type="radio" name="q1" value="a"> To train a classifier directly</label><label class="choice"><input type="radio" name="q1" value="b"> To split text into manageable language units</label><label class="choice"><input type="radio" name="q1" value="c"> To remove all negative words</label></div>
+      <div class="q" data-answer="c"><p>2. Which is a bigram from “not very good”?</p><label class="choice"><input type="radio" name="q2" value="a"> not</label><label class="choice"><input type="radio" name="q2" value="b"> not very good</label><label class="choice"><input type="radio" name="q2" value="c"> very good</label></div>
+      <div class="q" data-answer="a"><p>3. What does Word2Vec mainly give each word?</p><label class="choice"><input type="radio" name="q3" value="a"> A dense numeric vector</label><label class="choice"><input type="radio" name="q3" value="b"> A sentiment label</label><label class="choice"><input type="radio" name="q3" value="c"> A confusion matrix</label></div>
+      <div class="q" data-answer="b"><p>4. A high IDF generally means the term is...</p><label class="choice"><input type="radio" name="q4" value="a"> present in every document</label><label class="choice"><input type="radio" name="q4" value="b"> relatively rare across the corpus</label><label class="choice"><input type="radio" name="q4" value="c"> always positive</label></div>
+      <div class="q" data-answer="c"><p>5. In the common-techniques notebook, which models use TF-IDF pipelines?</p><label class="choice"><input type="radio" name="q5" value="a"> Only Naive Bayes</label><label class="choice"><input type="radio" name="q5" value="b"> Only LSTM</label><label class="choice"><input type="radio" name="q5" value="c"> Logistic Regression, Linear SVM and Decision Tree</label></div>
+      <div class="q" data-answer="a"><p>6. Why keep a test set separate from training?</p><label class="choice"><input type="radio" name="q6" value="a"> To check behaviour on unseen examples</label><label class="choice"><input type="radio" name="q6" value="b"> To increase the training set size</label><label class="choice"><input type="radio" name="q6" value="c"> To remove punctuation</label></div>
+      <div class="q" data-answer="b"><p>7. In the LSTM notebook, why pad reviews to length 500?</p><label class="choice"><input type="radio" name="q7" value="a"> To convert labels to probabilities</label><label class="choice"><input type="radio" name="q7" value="b"> To give sequences a consistent input length</label><label class="choice"><input type="radio" name="q7" value="c"> To create bigrams</label></div>
+      <div class="q" data-answer="c"><p>8. What does the final sigmoid layer produce?</p><label class="choice"><input type="radio" name="q8" value="a"> A list of tokens</label><label class="choice"><input type="radio" name="q8" value="b"> A word embedding matrix</label><label class="choice"><input type="radio" name="q8" value="c"> A value between 0 and 1 for binary sentiment</label></div>
+    </div>
+    <button onclick="markQuiz()">Check answers</button>
+    <div class="quiz-result" id="quizResult">Result will appear here.</div>
+  </section>
+
+
+  <section id="at1">
+    <h2>11. AT1 Demo 7 — what can you choose?</h2>
+    <p class="section-intro">For AT1 Demo 7, the specification lists <strong>four candidate techniques</strong>. Choose your technique from these four and use the notebook output to explain how it works for sentiment analysis.</p>
+
+    <div class="at1-grid">
+      <div class="at1-card">
+        <span class="at1-num">01</span>
+        <h3>Naive Bayes</h3>
+        <p>Uses the observed text features to compare how probable each sentiment class is.</p>
+      </div>
+      <div class="at1-card">
+        <span class="at1-num">02</span>
+        <h3>Logistic Regression</h3>
+        <p>Uses weighted text features to estimate which sentiment class the review belongs to.</p>
+      </div>
+      <div class="at1-card">
+        <span class="at1-num">03</span>
+        <h3>Support Vector Machine</h3>
+        <p>Finds a decision boundary that separates the sentiment classes using the text features.</p>
+      </div>
+      <div class="at1-card">
+        <span class="at1-num">04</span>
+        <h3>Decision Tree</h3>
+        <p>Makes a sequence of feature-based decisions until it reaches a sentiment prediction.</p>
+      </div>
+    </div>
+
+    <div class="callout teal" style="margin-top:18px">
+      <strong>For the demo, be ready to explain three things:</strong>
+      <div class="at1-check">
+        <div><strong>1. Preprocessing</strong><br><span class="small">How the text is converted into features before the model uses it.</span></div>
+        <div><strong>2. Model workflow</strong><br><span class="small">What the selected algorithm does with those features.</span></div>
+        <div><strong>3. Result</strong><br><span class="small">What output the model produces and how you interpret it.</span></div>
+      </div>
+    </div>
+
+    <div class="callout warn">
+      <strong>Important distinction:</strong> tokenisation, n-grams, Word2Vec, TF-IDF and LSTM are covered in Lab 7, but the specification names only the four classifiers above as <strong>AT1 Demo 7 candidate techniques</strong>.
+      <div class="not-choice">
+        <span>Tokenisation</span><span>N-grams</span><span>Word2Vec</span><span>TF-IDF</span><span>LSTM</span>
+      </div>
+    </div>
+  </section>
+
+  <div class="footer">Prepared from the supplied Lab 7 specification, NLP basics notebook, common sentiment-analysis notebook, LSTM demo notebook and TF-IDF slide.</div>
+</main>
+<script>
+  window.addEventListener('scroll',()=>{
+    const h=document.documentElement;
+    const scrolled=(h.scrollTop)/(h.scrollHeight-h.clientHeight)*100;
+    document.getElementById('progress').style.width=scrolled+'%';
+  });
+  function escapeHtml(s){return s.replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));}
+  function chips(items, cls='token'){
+    return items.map(x=>'<span class="'+cls+'">'+escapeHtml(x)+'</span>').join(' ');
+  }
+  function showSentenceTokens(){
+    const text=document.getElementById('tokInput').value.trim();
+    if(!text){document.getElementById('sentOut').textContent='Enter some text.';return;}
+    const s=text.match(/[^.!?]+[.!?]+|[^.!?]+$/g)||[];
+    document.getElementById('sentOut').innerHTML=chips(s.map(x=>x.trim()));
+  }
+  function showWordTokens(){
+    const text=document.getElementById('tokInput').value.trim();
+    if(!text){document.getElementById('wordOut').textContent='Enter some text.';return;}
+    const w=text.match(/[A-Za-z]+(?:'[A-Za-z]+)?|\d+|[^\sA-Za-z\d]/g)||[];
+    document.getElementById('wordOut').innerHTML=chips(w);
+  }
+  function makeNgrams(){
+    const words=document.getElementById('ngInput').value.toLowerCase().match(/[a-z0-9']+/g)||[];
+    const n=parseInt(document.getElementById('ngN').value,10);
+    const arr=[];
+    for(let i=0;i<=words.length-n;i++) arr.push(words.slice(i,i+n).join(' '));
+    document.getElementById('ngOut').innerHTML=arr.length?chips(arr,'ngram'):'Not enough words for that n-gram size.';
+  }
+  function markQuiz(){
+    const qs=[...document.querySelectorAll('.q')];
+    let score=0, answered=0;
+    qs.forEach(q=>{
+      q.style.borderColor='var(--line)';
+      const picked=q.querySelector('input:checked');
+      if(picked){answered++; if(picked.value===q.dataset.answer){score++;q.style.borderColor='#8fd0ba';}else{q.style.borderColor='#e4a5a5';}}
+    });
+    const out=document.getElementById('quizResult');
+    if(answered<qs.length){out.textContent=`Answered ${answered}/${qs.length}. Current score: ${score}/${qs.length}.`;return;}
+    const msg=score===8?'Excellent — the full pipeline is clear.':score>=6?'Strong — review any red-bordered question once more.':score>=4?'Good start — revisit the recap table and the red-bordered questions.':'Revisit the core sections, then try again.';
+    out.textContent=`Score: ${score}/${qs.length}. ${msg}`;
+  }
+  showSentenceTokens(); showWordTokens(); makeNgrams();
+</script>
+</body>
+</html>

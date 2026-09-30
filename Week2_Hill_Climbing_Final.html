@@ -1,0 +1,800 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>Hill Climbing — Classroom Teaching Guide</title>
+<style>
+:root{
+  --bg:#07101d;
+  --panel:#0f1b2d;
+  --panel2:#13233a;
+  --text:#f8fafc;
+  --muted:#c7d0dc;
+  --blue:#7db2ff;
+  --green:#78e6b5;
+  --red:#ff8798;
+  --amber:#ffd166;
+  --line:#2a3d57;
+}
+*{box-sizing:border-box}
+html,body{
+  margin:0;height:100%;
+  background:var(--bg);color:var(--text);
+  font-family:Inter,ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+  overflow:hidden;
+}
+body{display:flex;flex-direction:column}
+.topbar{
+  height:62px;display:flex;align-items:center;justify-content:space-between;
+  padding:0 22px;background:#050b14;border-bottom:1px solid var(--line);flex:none
+}
+.brand{font-weight:900;font-size:18px}
+.controls{display:flex;gap:8px;align-items:center}
+button{
+  border:1px solid #3a5273;background:#12223a;color:#fff;border-radius:10px;
+  padding:9px 13px;font-weight:800;cursor:pointer;font-size:15px
+}
+button:hover{background:#19304f}
+.progress{height:5px;background:#142037;flex:none}
+.progress>div{height:100%;width:0;background:linear-gradient(90deg,var(--blue),var(--green));transition:width .2s}
+.deck{position:relative;flex:1}
+.slide{
+  position:absolute;inset:0;display:none;overflow:auto;
+  padding:34px 56px 42px;
+}
+.slide.active{display:block}
+.inner{
+  max-width:1240px;margin:auto;min-height:100%;
+  display:flex;flex-direction:column;justify-content:flex-start;
+  padding-top:10px
+}
+.kicker{
+  color:var(--blue);font-weight:900;text-transform:uppercase;
+  letter-spacing:.12em;font-size:16px;margin-bottom:8px
+}
+h1{
+  font-size:clamp(48px,6vw,82px);line-height:1.02;margin:0 0 18px
+}
+h2{
+  font-size:clamp(38px,4.7vw,62px);line-height:1.05;margin:0 0 18px
+}
+h3{
+  font-size:clamp(28px,3vw,38px);margin:0 0 12px
+}
+p,li{
+  font-size:clamp(24px,2.15vw,34px);
+  line-height:1.46
+}
+p{margin:10px 0}
+.script{
+  background:var(--panel);
+  border:1px solid var(--line);
+  border-left:7px solid var(--blue);
+  border-radius:16px;
+  padding:22px 26px;
+  margin-top:12px
+}
+.script p{
+  font-size:clamp(24px,2vw,32px);
+  line-height:1.52;
+  margin:10px 0
+}
+.script strong{color:#fff}
+.bigline{
+  font-size:clamp(30px,3.2vw,46px);
+  font-weight:900;line-height:1.25
+}
+.accent{color:var(--blue)} .good{color:var(--green)} .bad{color:var(--red)} .amber{color:var(--amber)}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:18px;margin-top:18px}
+.card{
+  background:var(--panel2);border:1px solid var(--line);
+  border-radius:15px;padding:20px
+}
+.card p{font-size:22px}
+.code{
+  background:#03070d;border:1px solid #23344c;border-radius:15px;padding:20px 22px;
+  font-family:"SFMono-Regular",Consolas,monospace;
+  font-size:clamp(18px,1.5vw,24px);line-height:1.5;
+  white-space:pre-wrap;overflow:auto;margin:12px 0
+}
+.route{
+  font-family:"SFMono-Regular",Consolas,monospace;
+  font-size:clamp(20px,1.8vw,27px);
+  background:#050b14;border:1px solid #2b405c;
+  border-radius:12px;padding:14px 16px;margin:10px 0
+}
+.callout{
+  background:#0d2138;border-left:6px solid var(--blue);
+  border-radius:13px;padding:16px 20px;margin:14px 0
+}
+.callout p{font-size:23px;margin:3px 0}
+.callout.goodbox{background:#0b261f;border-color:var(--green)}
+.callout.warn{background:#2b230d;border-color:var(--amber)}
+.callout.badbox{background:#2b1118;border-color:var(--red)}
+.table{width:100%;border-collapse:collapse;margin-top:14px}
+.table th,.table td{
+  border-bottom:1px solid var(--line);
+  padding:12px 14px;text-align:left;vertical-align:top;
+  font-size:21px;line-height:1.4
+}
+.table th{color:#d6e7ff;font-size:22px}
+.flow{
+  display:flex;gap:12px;align-items:center;justify-content:center;flex-wrap:wrap;
+  margin:16px 0
+}
+.box{
+  padding:13px 16px;border-radius:12px;background:#122238;border:1px solid #344e6e;
+  font-size:22px;font-weight:900;text-align:center
+}
+.arrow{font-size:30px;color:#8ea0b7}
+.demo{
+  display:grid;grid-template-columns:1.05fr .95fr;
+  gap:16px;margin-top:14px
+}
+.metric-row{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:12px}
+.metric{
+  background:#08111f;border:1px solid #273951;border-radius:10px;padding:10px
+}
+.metric span{display:block;color:var(--muted);font-size:13px}
+.metric b{font-size:22px}
+#decision{
+  margin-top:12px;padding:14px;border-radius:11px;background:#08111f;border:1px solid #293d59;
+  font-size:21px;line-height:1.4
+}
+svg{width:100%;height:auto;background:#07101d;border-radius:10px;border:1px solid #263a55}
+.quizq{font-size:clamp(30px,3.1vw,44px);font-weight:900;margin:18px 0}
+.answer{
+  display:none;margin-top:16px;background:#0b261f;border:1px solid #2f7058;
+  border-radius:13px;padding:18px;font-size:25px;line-height:1.45
+}
+.answer.show{display:block}
+.footer{
+  margin-top:auto;padding-top:18px;color:#7e90a9;font-size:13px
+}
+.slidecount{color:#9fb0c6;font-size:14px}
+.navhint{position:fixed;right:18px;bottom:12px;color:#6f8199;font-size:12px;z-index:10}
+@media(max-width:900px){
+ .slide{padding:26px 22px 40px}
+ .grid2,.demo{grid-template-columns:1fr}
+ .metric-row{grid-template-columns:1fr}
+}
+
+.explanation{
+  background:var(--panel);
+  border:1px solid var(--line);
+  border-left:6px solid var(--blue);
+  border-radius:16px;
+  padding:22px 26px;
+  margin-top:12px;
+}
+.explanation p{
+  font-size:clamp(24px,2vw,32px);
+  line-height:1.52;
+  margin:10px 0;
+}
+.explanation strong{color:#fff}
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <div class="brand">41040 · Hill Climbing · Classroom Teaching Guide</div>
+  <div class="controls">
+    <button onclick="prevSlide()">← Previous</button>
+    <span class="slidecount" id="count"></span>
+    <button onclick="nextSlide()">Next →</button>
+  </div>
+</div>
+
+<div class="progress"><div id="bar"></div></div>
+
+<div class="deck">
+
+<section class="slide active">
+<div class="inner">
+  <div class="kicker">Opening</div>
+  <h1>Hill Climbing</h1>
+  <p class="bigline">A simple local search algorithm for improving a complete solution step by step.</p>
+
+  <div class="explanation">
+        <p>Today we are looking at <strong>Hill Climbing</strong>, which is a local search and optimisation algorithm.</p>
+    <p>The main idea is very simple. We start with one complete solution. We make a small change to that solution to create a nearby solution, which we call a <strong>neighbour</strong>. Then we compare the two solutions.</p>
+    <p>If the neighbour is better, we move to it. If it is not better, we stay where we are.</p>
+    <p>In this lab, our problem is the <strong>Travelling Salesman Problem</strong>, or TSP, using Romanian cities.</p>
+  </div>
+
+  <div class="flow">
+    <div class="box">Current solution</div><div class="arrow">→</div>
+    <div class="box">Create neighbour</div><div class="arrow">→</div>
+    <div class="box">Compare cost</div><div class="arrow">→</div>
+    <div class="box good">Move if better</div>
+  </div>
+  <div class="footer">Press → for the next screen.</div>
+</div>
+</section>
+
+<section class="slide">
+<div class="inner">
+  <div class="kicker">1 · Understand the problem first</div>
+  <h2>This lab uses a Euclidean TSP</h2>
+
+  <div class="explanation">
+        <p>Before we talk about Hill Climbing, we need to be very clear about the problem we are solving.</p>
+    <p>A salesperson starts from a city, in our case we will use <strong>Arad</strong>. The salesperson must visit every other city exactly once and then return back to Arad.</p>
+    <p>The goal is to find a route with the <strong>smallest total round-trip distance</strong>.</p>
+    <p>This is different from the shortest-path problems we saw earlier. We are not asking, ‘What is the cheapest path from Arad to Bucharest?’ Instead, we are asking, ‘What is a good ordering of all the cities so that the total tour is as short as possible?’</p>
+    <p>Also, this lab treats the cities as a <strong>complete graph</strong>. That means every pair of cities is considered directly connected using straight-line Euclidean distance. We are not following the actual Romania road network.</p>
+  </div>
+
+  <div class="callout warn">
+    <p><strong>Important:</strong> This is optimisation over a complete tour, not shortest-path search over roads.</p>
+  </div>
+</div>
+</section>
+
+<section class="slide">
+<div class="inner">
+  <div class="kicker">2 · What is a solution?</div>
+  <h2>One state is the whole route</h2>
+
+  <div class="route">['Arad', 'Sibiu', 'Fagaras', 'Bucharest', ..., 'Zerind']</div>
+
+  <div class="explanation">
+        <p>In this problem, one candidate solution is a <strong>complete ordering of all the cities</strong>.</p>
+    <p>So unlike a shortest-path problem, where a state may be just one city, here one state represents the entire TSP tour.</p>
+    <p>Every city must appear exactly once in the route. In this notebook, Arad is kept at the first position, and at the end of the tour we return from the last city back to Arad.</p>
+    <p>For example, if our route starts with Arad, then goes to Sibiu, then Fagaras, then Bucharest, and continues through all the remaining cities, that whole list is one candidate solution.</p>
+    <p>If a city appears twice, or if a city is missing, then the route is not a valid TSP solution.</p>
+  </div>
+
+  <div class="callout">
+    <p><strong>Remember:</strong> one complete permutation of the cities = one solution.</p>
+  </div>
+</div>
+</section>
+
+<section class="slide">
+<div class="inner">
+  <div class="kicker">3 · Cost function</div>
+  <h2>How do we know which route is better?</h2>
+
+  <div class="explanation">
+        <p>Hill Climbing needs a way to score a solution. In our problem, the score is the <strong>total route distance</strong>.</p>
+    <p>We calculate the Euclidean distance from the first city to the second city, then from the second to the third, and so on.</p>
+    <p>After we reach the last city, we also add the distance from the last city back to the first city, because TSP requires a complete round trip.</p>
+    <p>Since our objective is to minimise distance, a <strong>smaller cost means a better solution</strong>.</p>
+  </div>
+
+  <div class="code">def route_distance(route):
+    total = 0
+
+    for i in range(len(route) - 1):
+        total += distance_matrix[route[i]][route[i + 1]]
+
+    total += distance_matrix[route[-1]][route[0]]
+
+    return total</div>
+
+  <div class="callout goodbox">
+    <p>Lower distance = better route.</p>
+  </div>
+</div>
+</section>
+
+<section class="slide">
+<div class="inner">
+  <div class="kicker">4 · Euclidean distance</div>
+  <h2>Where does each city-to-city distance come from?</h2>
+
+  <div class="explanation">
+        <p>Each city has coordinates. To calculate the distance between two cities, the notebook uses the standard Euclidean distance formula.</p>
+    <p>Conceptually, this is just the straight-line distance between two points.</p>
+    <p>We do not need to focus heavily on the mathematics here. The important point for Hill Climbing is that the distance function gives us a numerical cost for every route.</p>
+    <p>Once we can assign a cost to a route, Hill Climbing can compare one route with another.</p>
+  </div>
+
+  <div class="callout">
+    <p style="font-size:30px;text-align:center"><strong>d(A,B) = √((xA − xB)² + (yA − yB)²)</strong></p>
+  </div>
+</div>
+</section>
+
+<section class="slide">
+<div class="inner">
+  <div class="kicker">5 · Neighbour</div>
+  <h2>How do we create a nearby solution?</h2>
+
+  <div class="route">Current: &nbsp;&nbsp;Arad → Sibiu → Bucharest → Zerind → Iasi</div>
+  <div class="route">Neighbour: Arad → Zerind → Bucharest → Sibiu → Iasi</div>
+
+  <div class="explanation">
+        <p>Hill Climbing does not create a completely unrelated route every time. Instead, it creates a <strong>neighbour</strong>, which is a small variation of the current solution.</p>
+    <p>In this lab, a neighbour is created by selecting two cities and swapping their positions.</p>
+    <p>For example, in this small route, Sibiu and Zerind have swapped places. Everything else has stayed the same.</p>
+    <p>This is useful because the route remains valid. We have not added or removed any cities. We have only changed the order in which two cities are visited.</p>
+  </div>
+</div>
+</section>
+
+<section class="slide">
+<div class="inner">
+  <div class="kicker">6 · Neighbour code</div>
+  <h2>Read the swap function carefully</h2>
+
+  <div class="code">def swap_neighbour(route):
+    neighbour = route.copy()
+
+    i, j = random.sample(
+        range(1, len(neighbour)), 2
+    )
+
+    neighbour[i], neighbour[j] = (
+        neighbour[j], neighbour[i]
+    )
+
+    return neighbour</div>
+
+  <div class="explanation">
+        <p>The first line creates a copy of the current route. We do this because we do not want to destroy our current solution before deciding whether the new one is better.</p>
+    <p>Next, the code randomly selects two positions from the route.</p>
+    <p>Notice that the range starts from <strong>1</strong>, not 0. Position 0 contains Arad, so starting from 1 keeps Arad fixed as the starting city.</p>
+    <p>Then the two selected cities are swapped, and the new route is returned as our candidate neighbour.</p>
+  </div>
+</div>
+</section>
+
+<section class="slide">
+<div class="inner">
+  <div class="kicker">7 · Core HC rule</div>
+  <h2>This is the heart of Hill Climbing</h2>
+
+  <div class="code">if neighbour_cost &lt; current_cost:
+    current_solution = neighbour
+    current_cost = neighbour_cost</div>
+
+  <div class="explanation">
+        <p>This small condition contains the main idea of Hill Climbing.</p>
+    <p>We calculate the cost of our current route and the cost of the neighbour route.</p>
+    <p>If the neighbour has a <strong>smaller</strong> cost, then the neighbour is better, so we accept it and make it our new current solution.</p>
+    <p>If the neighbour has a larger cost, we reject it and keep the current solution.</p>
+    <p>If the neighbour has exactly the same cost, it is also rejected because the code uses a strict less-than sign.</p>
+  </div>
+
+  <div class="grid2">
+    <div class="card"><p><strong class="good">MOVE</strong><br/>Current = 2500<br/>Neighbour = 2300<br/>2300 &lt; 2500</p></div>
+    <div class="card"><p><strong class="bad">STAY</strong><br/>Current = 2300<br/>Neighbour = 2400<br/>2400 &lt; 2300 is false</p></div>
+  </div>
+</div>
+</section>
+
+<section class="slide">
+<div class="inner">
+  <div class="kicker">8 · Very important implementation detail</div>
+  <h2>This lab checks only one random neighbour at a time</h2>
+
+  <div class="explanation">
+        <p>There is one very important detail about this particular implementation.</p>
+    <p>In some textbook versions of Hill Climbing, the algorithm may examine many neighbours and choose the best one. That is <strong>not</strong> what this notebook does.</p>
+    <p>Here, each iteration generates only <strong>one random swap neighbour</strong>.</p>
+    <p>If that random neighbour is better, we accept it. If it is worse, we reject it and try another random neighbour on the next iteration.</p>
+    <p>This also means that finding one bad neighbour does not prove that there are no better neighbours. It only means that this particular random swap was not useful.</p>
+  </div>
+
+  <div class="callout badbox">
+    <p><strong>Do not say:</strong> The algorithm checks all neighbours and chooses the best.</p>
+  </div>
+</div>
+</section>
+
+<section class="slide">
+<div class="inner">
+  <div class="kicker">9 · Live demonstration</div>
+  <h2>Let’s watch Hill Climbing make decisions</h2>
+
+  <div class="demo">
+    <div class="card">
+      <div class="metric-row">
+        <div class="metric"><span>Current cost</span><b id="cur">—</b></div>
+        <div class="metric"><span>Neighbour cost</span><b id="nei">—</b></div>
+        <div class="metric"><span>Accepted moves</span><b id="acc">0</b></div>
+      </div>
+
+      <div class="route" id="routeText"></div>
+
+      <div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:12px">
+        <button onclick="newRoute()">New random route</button>
+        <button onclick="stepHC()">Try one HC step</button>
+        <button onclick="runHC(30)">Run 30 steps</button>
+      </div>
+
+      <div id="decision">Click Try one HC step.</div>
+    </div>
+
+    <div class="card">
+      <h3>Convergence</h3>
+      <svg id="chart" viewBox="0 0 520 300"></svg>
+      <p style="font-size:18px;color:#c7d0dc">Downward = accepted improvement · Flat = rejected neighbour</p>
+    </div>
+  </div>
+
+  <div class="explanation">
+        <p>Right now, this route is our current solution. When I click one step, the algorithm creates one random swap neighbour and calculates its cost.</p>
+    <p>If the new cost is smaller, we move to that route. If the cost is not smaller, we stay where we are.</p>
+    <p>Notice that the algorithm does not keep every route. It only keeps the current accepted solution.</p>
+  </div>
+</div>
+</section>
+
+<section class="slide">
+<div class="inner">
+  <div class="kicker">10 · Iterations</div>
+  <h2>What happens inside one Hill Climbing run?</h2>
+
+  <div class="code">for iteration in range(max_iterations):
+    neighbour = neighbour_function(current_solution)
+    neighbour_cost = objective_function(neighbour)
+
+    if neighbour_cost &lt; current_cost:
+        current_solution = neighbour
+        current_cost = neighbour_cost
+
+    history.append(current_cost)</div>
+
+  <div class="explanation">
+        <p>Inside one Hill Climbing run, the algorithm repeats the same process many times.</p>
+    <p>It generates one random neighbour, calculates the neighbour’s cost, and compares it with the current cost.</p>
+    <p>If the neighbour improves the route, it becomes the new current solution.</p>
+    <p>Then the current cost is added to the history so that we can later draw a convergence graph.</p>
+    <p>In the lab implementation, this inner loop can run for up to <strong>1500 iterations</strong>.</p>
+  </div>
+</div>
+</section>
+
+<section class="slide">
+<div class="inner">
+  <div class="kicker">11 · Random restarts</div>
+  <h2>Why do we start again many times?</h2>
+
+  <div class="explanation">
+        <p>Hill Climbing is strongly affected by its starting solution.</p>
+    <p>If we begin from one random route, the algorithm may improve it and end up in a reasonably good region. But another starting route may lead to a much better region of the search space.</p>
+    <p>For this reason, the lab uses <strong>random restarts</strong>.</p>
+    <p>A restart means we create a completely new random starting route and run Hill Climbing again from there.</p>
+    <p>After each restart, we compare the final result with the best result we have found so far.</p>
+    <p>In the lab implementation, we use up to <strong>40 restarts</strong>.</p>
+  </div>
+
+  <div class="flow">
+    <div class="box">Restart 1</div><div class="arrow">→</div><div class="box">HC improves</div><div class="arrow">→</div><div class="box">cost 1900</div>
+  </div>
+  <div class="flow">
+    <div class="box">Restart 2</div><div class="arrow">→</div><div class="box">HC improves</div><div class="arrow">→</div><div class="box good">cost 1760</div>
+  </div>
+</div>
+</section>
+
+<section class="slide">
+<div class="inner">
+  <div class="kicker">12 · Current vs best</div>
+  <h2>These variables mean different things</h2>
+
+  <table class="table">
+    <tr><th>Variable</th><th>Meaning</th></tr>
+    <tr><td><code>current_solution</code></td><td>The route Hill Climbing is currently using inside one restart.</td></tr>
+    <tr><td><code>current_cost</code></td><td>The cost of that current route.</td></tr>
+    <tr><td><code>best_solution</code></td><td>The best final route found across the restarts completed so far.</td></tr>
+    <tr><td><code>best_cost</code></td><td>The smallest final cost found across those restarts.</td></tr>
+  </table>
+
+  <div class="explanation">
+        <p>The word <strong>current</strong> means where the algorithm is right now within one restart.</p>
+    <p>The word <strong>best</strong> means the best result found across all of the restarts we have completed so far.</p>
+    <p>The code starts with <code>best_cost = math.inf</code>. This simply means we initially treat the best cost as infinitely large, so the first real route we finish with will automatically be better than infinity.</p>
+  </div>
+</div>
+</section>
+
+<section class="slide">
+<div class="inner">
+  <div class="kicker">13 · Local optimum</div>
+  <h2>The biggest weakness of Hill Climbing</h2>
+
+  <div class="explanation">
+        <p>Hill Climbing only accepts moves that immediately improve the current solution.</p>
+    <p>This is simple and efficient, but it creates a problem. Sometimes the algorithm may reach a route where the nearby changes it tries are worse, even though a much better route exists somewhere else.</p>
+    <p>We call this being stuck in a <strong>local optimum</strong> or a locally good region.</p>
+    <p>For example, imagine our current route has a cost of 1800. There might be a route with cost 1600 somewhere else, but perhaps reaching that region requires temporarily moving from 1800 to 1840 first.</p>
+    <p>Hill Climbing will not accept the 1840 move because it is worse than 1800. Therefore it may never reach the 1600 route through that path.</p>
+  </div>
+
+  <div class="callout badbox">
+    <p><strong>1800 → 1840 → 1600</strong><br/>HC refuses the middle step, even though the final result would be better.</p>
+  </div>
+</div>
+</section>
+
+<section class="slide">
+<div class="inner">
+  <div class="kicker">14 · Convergence graph</div>
+  <h2>How should we read the graph?</h2>
+
+  <div class="route">3500, 3500, 3310, 3310, 3310, 3040, 2900, 2900, ...</div>
+
+  <div class="explanation">
+        <p>The convergence graph shows how the current accepted cost changes over the iterations.</p>
+    <p>When the line goes down, it means the algorithm found a better neighbour and accepted it.</p>
+    <p>When the line is flat, it means the algorithm tried one or more neighbours that were not better, so it stayed at the same current solution.</p>
+    <p>For this version of Hill Climbing, the line should not go upward, because the algorithm never accepts a worse route.</p>
+    <p>So the general pattern we expect is a staircase that moves downward and then becomes flatter as improvements become harder to find.</p>
+  </div>
+
+  <div class="grid2">
+    <div class="card"><p><strong class="good">Downward step</strong><br/>A better route was accepted.</p></div>
+    <div class="card"><p><strong>Flat section</strong><br/>The sampled neighbour was rejected.</p></div>
+  </div>
+</div>
+</section>
+
+<section class="slide">
+<div class="inner">
+  <div class="kicker">15 · Termination</div>
+  <h2>When does this implementation stop?</h2>
+
+  <div class="explanation">
+        <p>Another important detail is the termination condition.</p>
+    <p>This implementation does not stop immediately when it sees one worse neighbour. It simply rejects that neighbour and continues.</p>
+    <p>The inner Hill Climbing loop stops when it reaches the specified maximum number of iterations.</p>
+    <p>Then, if random restarts are being used, the algorithm starts again from another random route.</p>
+    <p>After all restarts are finished, the algorithm returns the best route and best cost it found.</p>
+  </div>
+
+  <div class="callout warn">
+    <p>One rejected neighbour does <strong>not</strong> terminate the algorithm.</p>
+  </div>
+</div>
+</section>
+
+<section class="slide">
+<div class="inner">
+  <div class="kicker">16 · Full algorithm story</div>
+  <h2>Now read the whole function as a process</h2>
+
+  <div class="code">best_solution = None
+best_cost = math.inf
+
+for restart in range(restarts):
+
+    current_solution = random_solution_function()
+    current_cost = objective_function(current_solution)
+
+    for iteration in range(max_iterations):
+
+        neighbour = neighbour_function(current_solution)
+        neighbour_cost = objective_function(neighbour)
+
+        if neighbour_cost &lt; current_cost:
+            current_solution = neighbour
+            current_cost = neighbour_cost
+
+        history.append(current_cost)
+
+    if current_cost &lt; best_cost:
+        best_solution = current_solution
+        best_cost = current_cost</div>
+
+  <div class="explanation">
+        <p>We begin with no best solution and an infinitely large best cost.</p>
+    <p>For each restart, we generate a new random route and calculate its cost.</p>
+    <p>Then, for many iterations, we generate one random neighbour and compare its cost with the current cost.</p>
+    <p>If the neighbour is better, we move to it. Otherwise, we keep the current route.</p>
+    <p>At the end of that restart, if the final current cost is better than our best cost so far, we save it as the new global best result.</p>
+    <p>Finally, after all restarts, we return the best route and cost we found.</p>
+  </div>
+</div>
+</section>
+
+<section class="slide">
+<div class="inner">
+  <div class="kicker">17 · Connect to UCS</div>
+  <h2>Why this feels different from Lab 1</h2>
+
+  <table class="table">
+    <tr><th></th><th>Uniform Cost Search</th><th>Hill Climbing in this lab</th></tr>
+    <tr><td>Main goal</td><td>Reach a goal node through a low-cost path.</td><td>Improve a complete TSP tour.</td></tr>
+    <tr><td>State</td><td>A node/path in the graph.</td><td>A complete ordering of all cities.</td></tr>
+    <tr><td>Main structure</td><td>Priority queue / frontier.</td><td>Current solution and one candidate neighbour.</td></tr>
+    <tr><td>Decision</td><td>Expand the lowest accumulated path cost.</td><td>Move only if the neighbour lowers total route cost.</td></tr>
+  </table>
+
+  <div class="explanation">
+        <p>If you are comparing this with Uniform Cost Search, the key difference is that UCS systematically explores paths toward a goal.</p>
+    <p>Hill Climbing is different. It starts with one complete candidate solution and repeatedly modifies that complete solution locally.</p>
+    <p>There is no priority queue and no frontier of paths. We mainly keep the current route, generate a neighbour, compare costs, and decide whether to move.</p>
+  </div>
+</div>
+</section>
+
+<section class="slide">
+<div class="inner">
+  <div class="kicker">18 · Transition to Simulated Annealing</div>
+  <h2>Why does SA behave differently?</h2>
+
+  <div class="grid2">
+    <div class="card">
+      <h3>Hill Climbing</h3>
+      <p class="bigline bad">Worse move?</p>
+      <p class="bigline">Never accept it.</p>
+    </div>
+    <div class="card">
+      <h3>Simulated Annealing</h3>
+      <p class="bigline amber">Worse move?</p>
+      <p class="bigline">Sometimes accept it.</p>
+    </div>
+  </div>
+
+  <div class="explanation">
+        <p>This limitation of Hill Climbing gives us a natural reason to study Simulated Annealing.</p>
+    <p>Hill Climbing never accepts a worse move. Simulated Annealing can sometimes accept a worse move, especially when the temperature is high.</p>
+    <p>That may sound strange, but it can help the algorithm escape a locally good region and move toward a better region later.</p>
+    <p>So one useful way to remember the difference is: Hill Climbing is strict and greedy, while Simulated Annealing allows some controlled exploration.</p>
+  </div>
+</div>
+</section>
+
+<section class="slide">
+<div class="inner">
+  <div class="kicker">19 · Quick class check</div>
+  <h2>Ask these before you finish</h2>
+
+  <div class="quizq" id="qtext">What is one candidate solution in this TSP?</div>
+  <div style="display:flex;gap:10px;flex-wrap:wrap">
+    <button onclick="showAnswer()">Reveal answer</button>
+    <button onclick="nextQuestion()">Next question</button>
+  </div>
+  <div class="answer" id="ans"></div>
+
+  <div class="explanation">
+        <p>I’m going to ask a few quick questions. Try to answer each one before I reveal the answer. The goal is to check whether we understand the process, not just the code syntax.</p>
+  </div>
+</div>
+</section>
+
+<section class="slide">
+<div class="inner">
+  <div class="kicker">20 · Final summary</div>
+  <h2>If you remember one explanation, remember this</h2>
+
+  <div class="explanation">
+        <p>A solution is one complete valid ordering of all the cities. We calculate its total Euclidean round-trip distance, and because this is a minimisation problem, a smaller distance means a better solution.</p>
+    <p>Hill Climbing creates a neighbour by swapping two cities in the current route. It calculates the neighbour’s cost and compares it with the current cost.</p>
+    <p>If the neighbour is better, Hill Climbing moves to it. If it is equal or worse, Hill Climbing keeps the current route and tries another random neighbour on the next iteration.</p>
+    <p>Because worse solutions are never accepted, the convergence curve can move downward or stay flat, but it should not rise.</p>
+    <p>This greedy behaviour can cause Hill Climbing to get stuck in locally good regions, so the lab uses random restarts to try several different starting routes and keep the best result found.</p>
+  </div>
+
+  <div class="callout goodbox">
+    <p><strong>That is the core Hill Climbing story for this lab.</strong></p>
+  </div>
+</div>
+</section>
+
+</div>
+
+<div class="navhint">← → navigate · F fullscreen</div>
+
+<script>
+const slides=[...document.querySelectorAll('.slide')];
+let idx=0;
+function update(){
+  slides.forEach((s,i)=>s.classList.toggle('active',i===idx));
+  document.getElementById('count').textContent=(idx+1)+' / '+slides.length;
+  document.getElementById('bar').style.width=((idx+1)/slides.length*100)+'%';
+}
+function nextSlide(){if(idx<slides.length-1){idx++;update()}}
+function prevSlide(){if(idx>0){idx--;update()}}
+document.addEventListener('keydown',e=>{
+  if(e.key==='ArrowRight'||e.key==='PageDown'||e.key===' '){e.preventDefault();nextSlide()}
+  else if(e.key==='ArrowLeft'||e.key==='PageUp'){e.preventDefault();prevSlide()}
+  else if(e.key.toLowerCase()==='f'){
+    if(!document.fullscreenElement) document.documentElement.requestFullscreen?.();
+    else document.exitFullscreen?.();
+  }
+});
+update();
+
+const loc={
+'Arad':[91,492],'Bucharest':[400,327],'Craiova':[253,288],'Drobeta':[165,299],
+'Eforie':[562,293],'Fagaras':[305,449],'Giurgiu':[375,270],'Hirsova':[534,350],
+'Iasi':[473,506],'Lugoj':[165,379],'Mehadia':[168,339],'Neamt':[406,537],
+'Oradea':[131,571],'Pitesti':[320,368],'Rimnicu Vilcea':[233,410],'Sibiu':[207,457],
+'Timisoara':[94,410],'Urziceni':[456,350],'Vaslui':[509,444],'Zerind':[108,531]
+};
+const cities=Object.keys(loc);
+let route=[],hist=[],acc=0,lastNei=null;
+function dist(a,b){const A=loc[a],B=loc[b];return Math.hypot(A[0]-B[0],A[1]-B[1])}
+function cost(r){let t=0;for(let i=0;i<r.length-1;i++)t+=dist(r[i],r[i+1]);return t+dist(r[r.length-1],r[0])}
+function shuffle(a){a=[...a];for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]]}return a}
+function makeRoute(){return ['Arad',...shuffle(cities.filter(c=>c!=='Arad'))]}
+function candidate(r){
+  const n=[...r];
+  const i=1+Math.floor(Math.random()*(n.length-1));
+  let j=1+Math.floor(Math.random()*(n.length-1));
+  while(j===i)j=1+Math.floor(Math.random()*(n.length-1));
+  const a=n[i],b=n[j];
+  [n[i],n[j]]=[n[j],n[i]];
+  return {n,a,b};
+}
+function newRoute(){
+  route=makeRoute();hist=[cost(route)];acc=0;lastNei=null;
+  document.getElementById('decision').textContent='New random starting route generated.';
+  renderDemo();
+}
+function stepSilent(){
+  const before=cost(route),c=candidate(route),nc=cost(c.n);
+  lastNei=nc;
+  const accepted=nc<before;
+  if(accepted){route=c.n;acc++}
+  hist.push(cost(route));
+  return {before,nc,a:c.a,b:c.b,accepted};
+}
+function stepHC(){
+  if(!route.length)newRoute();
+  const r=stepSilent();
+  document.getElementById('decision').innerHTML=r.accepted
+  ? `<span class="good"><strong>MOVE</strong></span> — swapping <strong>${r.a}</strong> and <strong>${r.b}</strong> improves the cost from <strong>${r.before.toFixed(2)}</strong> to <strong>${r.nc.toFixed(2)}</strong>.`
+  : `<span class="bad"><strong>STAY</strong></span> — swapping <strong>${r.a}</strong> and <strong>${r.b}</strong> gives <strong>${r.nc.toFixed(2)}</strong>, which is not better than <strong>${r.before.toFixed(2)}</strong>.`;
+  renderDemo();
+}
+function runHC(n){
+  if(!route.length)newRoute();
+  for(let i=0;i<n;i++)stepSilent();
+  document.getElementById('decision').innerHTML=`Ran <strong>${n}</strong> neighbour attempts. The route changed only when a strict improvement was found.`;
+  renderDemo();
+}
+function renderDemo(){
+  document.getElementById('cur').textContent=cost(route).toFixed(2);
+  document.getElementById('nei').textContent=lastNei==null?'—':lastNei.toFixed(2);
+  document.getElementById('acc').textContent=acc;
+  document.getElementById('routeText').textContent=route.join(' → ')+' → Arad';
+  drawChart();
+}
+function drawChart(){
+  const svg=document.getElementById('chart'),w=520,h=300,p=42;
+  if(!hist.length){svg.innerHTML='';return}
+  const min=Math.min(...hist),max=Math.max(...hist),span=Math.max(1,max-min);
+  const X=i=>p+(hist.length===1?0:i/(hist.length-1))*(w-p-18);
+  const Y=v=>20+(max-v)/span*(h-20-p);
+  const d=hist.map((v,i)=>(i?'L':'M')+X(i)+' '+Y(v)).join(' ');
+  svg.innerHTML=`<line x1="${p}" y1="20" x2="${p}" y2="${h-p}" stroke="#52647d"/>
+  <line x1="${p}" y1="${h-p}" x2="${w-18}" y2="${h-p}" stroke="#52647d"/>
+  <path d="${d}" fill="none" stroke="#7db2ff" stroke-width="3"/>
+  <text x="6" y="${Y(max)+4}" fill="#9fb0c6" font-size="12">${max.toFixed(0)}</text>
+  <text x="6" y="${Y(min)+4}" fill="#9fb0c6" font-size="12">${min.toFixed(0)}</text>`;
+}
+newRoute();
+
+const qs=[
+["What is one candidate solution in this TSP?","A complete valid permutation of all the cities, with Arad fixed first and the final city returning to Arad."],
+["What does the neighbour function do?","It copies the current route, selects two non-start positions, swaps those two cities, and returns the modified route."],
+["Current cost is 2000 and neighbour cost is 2050. What happens?","The neighbour is rejected and the current route is kept because 2050 is worse than 2000."],
+["Current cost is 2000 and neighbour cost is exactly 2000. What happens?","It is also rejected because the code uses strict < rather than <=."],
+["Why can the convergence graph be flat?","Because the sampled neighbour was not better, so current_cost did not change."],
+["Does one rejected neighbour mean there are no better neighbours?","No. This implementation samples only one random swap neighbour per iteration."],
+["Why use random restarts?","Because different starting routes can lead to different regions of the search space, so multiple restarts can improve the chance of finding a better route."],
+["Does Hill Climbing guarantee the global optimum?","No. It can become stuck in locally good regions and is not guaranteed to find the global optimum."],
+["What is the main difference between Hill Climbing and Simulated Annealing?","Hill Climbing never accepts worse moves, while Simulated Annealing may sometimes accept a worse move, especially at high temperature."]
+];
+let qi=0;
+function setQ(){
+  document.getElementById('qtext').textContent=qs[qi][0];
+  document.getElementById('ans').textContent=qs[qi][1];
+  document.getElementById('ans').classList.remove('show');
+}
+function showAnswer(){document.getElementById('ans').classList.add('show')}
+function nextQuestion(){qi=(qi+1)%qs.length;setQ()}
+setQ();
+</script>
+
+</body>
+</html>
