@@ -4,16 +4,18 @@ Self-contained, single-file HTML teaching notes for the **41040 Machine Learning
 sessions. Every page is plain HTML + CSS + JavaScript with no build step, no external
 dependencies and no internet connection required — open any file in a browser and it works.
 
-## Labs
+## ▶ Open the labs
+
+**Live site:** **https://radhika-verma06.github.io/41040-ML-Labs/**
 
 | Week | Topic | Open |
 | --- | --- | --- |
-| 2 | Hill Climbing & the Euclidean TSP | [Week2_Hill_Climbing_Final.html](./Week2_Hill_Climbing_Final.html) |
-| 3 | Classification, Regression & Gradient Boosting | [Week3_Gradient_Boosting_Final.html](./Week3_Gradient_Boosting_Final.html) |
-| 4 | Neural Network Models (FNN) | [Week4_Neural_Networks_Final.html](./Week4_Neural_Networks_Final.html) |
-| 5 | Reinforcement Learning in GridWorld | [Week5_Reinforcement_Learning_Final.html](./Week5_Reinforcement_Learning_Final.html) |
-| 6 | Computer Vision with Deep Learning (CNN, AlexNet, ResNet18, VGG11) | [Week6_Computer_Vision_Final.html](./Week6_Computer_Vision_Final.html) |
-| 7 | NLP & Sentiment Analysis (tokenisation, n-grams, Word2Vec, TF-IDF) | [Week7_NLP_Sentiment_Final.html](./Week7_NLP_Sentiment_Final.html) |
+| 2 | Hill Climbing & the Euclidean TSP | [Week2_Hill_Climbing_Final.html](https://radhika-verma06.github.io/41040-ML-Labs/Week2_Hill_Climbing_Final.html) |
+| 3 | Classification, Regression & Gradient Boosting | [Week3_Gradient_Boosting_Final.html](https://radhika-verma06.github.io/41040-ML-Labs/Week3_Gradient_Boosting_Final.html) |
+| 4 | Neural Network Models (FNN) | [Week4_Neural_Networks_Final.html](https://radhika-verma06.github.io/41040-ML-Labs/Week4_Neural_Networks_Final.html) |
+| 5 | Reinforcement Learning in GridWorld | [Week5_Reinforcement_Learning_Final.html](https://radhika-verma06.github.io/41040-ML-Labs/Week5_Reinforcement_Learning_Final.html) |
+| 6 | Computer Vision with Deep Learning (CNN, AlexNet, ResNet18, VGG11) | [Week6_Computer_Vision_Final.html](https://radhika-verma06.github.io/41040-ML-Labs/Week6_Computer_Vision_Final.html) |
+| 7 | NLP & Sentiment Analysis (tokenisation, n-grams, Word2Vec, TF-IDF) | [Week7_NLP_Sentiment_Final.html](https://radhika-verma06.github.io/41040-ML-Labs/Week7_NLP_Sentiment_Final.html) |
 
 ## What each lab covers
 
@@ -49,6 +51,8 @@ embeddings, TF-IDF, and a sentiment classifier.
 # just open in a browser
 open Week2_Hill_Climbing_Final.html
 ```
+
+Or open the published site: https://radhika-verma06.github.io/41040-ML-Labs/
 
 Or from a clone of this repository:
 
