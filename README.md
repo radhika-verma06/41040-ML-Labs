@@ -1,4 +1,4 @@
-# 41040 Machine Learning — Lab Notes (Weeks 2–7)
+# 41040 Machine Learning — Lab Notes (Weeks 2–8)
 
 Self-contained, single-file HTML teaching notes for the **41040 Machine Learning** lab
 sessions. Every page is plain HTML + CSS + JavaScript with no build step, no external
@@ -16,6 +16,7 @@ dependencies and no internet connection required — open any file in a browser 
 | 5 | Reinforcement Learning in GridWorld | [Week5_Reinforcement_Learning_Final.html](https://radhika-verma06.github.io/41040-ML-Labs/Week5_Reinforcement_Learning_Final.html) |
 | 6 | Computer Vision with Deep Learning (CNN, AlexNet, ResNet18, VGG11) | [Week6_Computer_Vision_Final.html](https://radhika-verma06.github.io/41040-ML-Labs/Week6_Computer_Vision_Final.html) |
 | 7 | NLP & Sentiment Analysis (tokenisation, n-grams, Word2Vec, TF-IDF) | [Week7_NLP_Sentiment_Final.html](https://radhika-verma06.github.io/41040-ML-Labs/Week7_NLP_Sentiment_Final.html) |
+| 8 | Generative AI — Autoencoders, VAEs and GANs | [Week8_Generative_AI_Final.html](https://radhika-verma06.github.io/41040-ML-Labs/Week8_Generative_AI_Final.html) |
 
 ## What each lab covers
 
@@ -45,6 +46,11 @@ ResNet18 / VGG11 architecture line.
 The NLP pipeline from raw text to sentiment: tokenisation, n-grams, Word2Vec and word
 embeddings, TF-IDF, and a sentiment classifier.
 
+**Week 8 — Generative AI**
+A beginner-friendly, interactive guide to autoencoder reconstruction, variational autoencoder
+image generation, GAN training on spiral data and image generation, plus comparisons and
+notebook-aligned activities.
+
 ## Usage
 
 ```bash
@@ -63,7 +69,7 @@ open Week2_Hill_Climbing_Final.html
 ```
 
 > **Note:** the repository folder is named `Week1_to_Week7_Final_HTMLs`, but only
-> Weeks 2–7 are present — there is no Week 1 file in this set.
+> Weeks 2–8 are present — there is no Week 1 file in this set.
 
 ## Contents
 
@@ -76,7 +82,8 @@ open Week2_Hill_Climbing_Final.html
 ├── Week4_Neural_Networks_Final.html
 ├── Week5_Reinforcement_Learning_Final.html
 ├── Week6_Computer_Vision_Final.html
-└── Week7_NLP_Sentiment_Final.html
+├── Week7_NLP_Sentiment_Final.html
+└── Week8_Generative_AI_Final.html
 ```
 
 ## Author
