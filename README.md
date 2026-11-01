@@ -1,8 +1,6 @@
-# 41040 Machine Learning — Lab Notes (Weeks 2–8)
+# 41040 Machine Learning — Lab Notes and Practice
 
-Self-contained, single-file HTML teaching notes for the **41040 Machine Learning** lab
-sessions. Every page is plain HTML + CSS + JavaScript with no build step, no external
-dependencies and no internet connection required — open any file in a browser and it works.
+Self-contained HTML teaching notes for the **41040 Machine Learning** lab sessions, plus an interactive concept-practice quest. The pages need no build step and run in a browser.
 
 ## ▶ Open the labs
 
@@ -17,6 +15,10 @@ dependencies and no internet connection required — open any file in a browser 
 | 6 | Computer Vision with Deep Learning (CNN, AlexNet, ResNet18, VGG11) | [Week6_Computer_Vision_Final.html](https://radhika-verma06.github.io/41040-ML-Labs/Week6_Computer_Vision_Final.html) |
 | 7 | NLP & Sentiment Analysis (tokenisation, n-grams, Word2Vec, TF-IDF) | [Week7_NLP_Sentiment_Final.html](https://radhika-verma06.github.io/41040-ML-Labs/Week7_NLP_Sentiment_Final.html) |
 | 8 | Generative AI — Autoencoders, VAEs and GANs | [Week8_Generative_AI_Final.html](https://radhika-verma06.github.io/41040-ML-Labs/Week8_Generative_AI_Final.html) |
+
+## Additional practice
+
+[MCQ Helps: Concept Quest](MCQ_Helps.html) is a browser-based multiple-choice practice tool covering introductory AI concepts. It draws a 100-question quest from its question bank, explains answers, tracks progress locally in the browser, and can export results.
 
 ## What each lab covers
 
@@ -76,6 +78,7 @@ open Week2_Hill_Climbing_Final.html
 ```
 .
 ├── README.md
+├── MCQ_Helps.html
 ├── .gitignore
 ├── Week2_Hill_Climbing_Final.html
 ├── Week3_Gradient_Boosting_Final.html
