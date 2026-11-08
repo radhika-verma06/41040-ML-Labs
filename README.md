@@ -18,7 +18,7 @@ Self-contained HTML teaching notes for the **41040 Machine Learning** lab sessio
 
 ## Additional practice
 
-[MCQ Helps: Concept Quest](MCQ_Helps.html) is a browser-based multiple-choice practice tool covering introductory AI concepts. It draws a 100-question quest from its question bank, explains answers, tracks progress locally in the browser, and can export results.
+[MCQ Helps: Concept Quest](MCQ_Helps.html) is a browser-based multiple-choice practice tool aligned to the Week 2–8 lab pages in this repository. Its 56 original questions cover seven lab topics; each 28-question quest draws four questions per topic, explains answers, saves progress locally in the browser, and can export results.
 
 ## What each lab covers
 
